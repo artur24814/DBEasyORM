@@ -12,6 +12,10 @@ class QueryCreatorABC(ABC):
         ...
 
     @abstractmethod
+    def delete(self, *args) -> QueryExecutor:
+        ...
+
+    @abstractmethod
     def all(self) -> QueryExecutor:
         ...
 

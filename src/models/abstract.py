@@ -1,11 +1,9 @@
-from abc import ABC, abstractmethod
+from src.DB_query.query_executor import QueryExecutor
 
 
-class ModelABC(ABC):
-    @abstractmethod
-    def save(self) -> object:
+class ModelABC:
+    def save(self) -> QueryExecutor:
         ...
 
-    @abstractmethod
-    def delete(self) -> int:
+    def delete(self) -> QueryExecutor:
         ...

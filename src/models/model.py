@@ -1,7 +1,9 @@
-from .abstract import ModelABC
 from src.query_creator.query_creator import QueryCreator
-from .exeptions import ThePrimaryKeyIsImmutable
 from src.DB_fields.base_field import BaseField
+from src.DB_query.query_executor import QueryExecutor
+
+from .abstract import ModelABC
+from .exeptions import ThePrimaryKeyIsImmutable
 
 
 class ModelMeta(type):
@@ -20,6 +22,10 @@ class ModelMeta(type):
 
 
 class Model(ModelABC, metaclass=ModelMeta):
+    def __init__(self, **kwargs):
+        self._id = -1
+        for field_name in self._fields:
+            setattr(self, field_name, kwargs.get(field_name))
 
     @property
     def id(self):
@@ -31,8 +37,11 @@ class Model(ModelABC, metaclass=ModelMeta):
             raise ThePrimaryKeyIsImmutable()
         self._id = value
 
-    def save(self):
-        pass
+    def save(self) -> QueryExecutor:
+        if self.id != -1:
+            return self.query_creator.create(**self._fields)
 
-    def delete(self):
-        pass
+        return self.query_creator.update(**self._fields)
+
+    def delete(self) -> QueryExecutor:
+        return self.query_creator.delete(self.id)
