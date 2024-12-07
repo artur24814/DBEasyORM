@@ -10,7 +10,8 @@ class BaseFieldMeta(type):
 
 
 class BaseField(metaclass=BaseFieldMeta):
-    def __init__(self, field_name=None, null=True, primary=False, unique=False):
+    def __init__(self, python_type, field_name=None, null=False, primary=False, unique=False):
+        self.python_type = python_type
         self.field_name = field_name
         self.null = null
         self.primary = primary
@@ -24,7 +25,7 @@ class BaseField(metaclass=BaseFieldMeta):
         sql_line = self.get_basic_sql_line()
         if self.primary:
             sql_line += ' PRIMARY KEY'
-        if not self.null and not self.primary:
+        if self.null is False and not self.primary:
             sql_line += ' NOT NULL'
         if self.unique and not self.primary:
             sql_line += ' UNIQUE'
@@ -32,4 +33,11 @@ class BaseField(metaclass=BaseFieldMeta):
         return sql_line
 
     def get_basic_sql_line(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError("This method must be implemented in subclasses")
+
+    def validate(self, value):
+        if not isinstance(value, self.python_type):
+            raise TypeError(
+                f"Invalid value for field '{self.field_name}': "
+                f"expected {self.python_type.__name__}, got {type(value).__name__}."
+            )
