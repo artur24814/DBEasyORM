@@ -42,17 +42,18 @@ connection = connect(
 2. Define Models
 ```python
 from DBEasyORM.models.model import Model
-from DBEasyORM.DB_fields.fields import Integer, String
+from DBEasyORM.DB_fields import fields
 
 class User(Model):
-    name = String(max_length=100)
-    email = String(max_length=100, unique=True)
+    username = fields.TextField(null=True)
+    email = fields.TextField(unique=True)
+    age = fields.IntegerField(min=0)
 ```
 
 3. Perform CRUD Operations
 ```python
 # Create a new user
-new_user = User(name='John Doe', email='john@example.com')
+new_user = User(username='John Doe', email='john@example.com', age=18)
 new_user.save().execute()
 
 # Fetch all users
@@ -60,7 +61,7 @@ users = User.all().execute()
 
 # Update a user
 user = User.get_one(1).execute()
-user.name = 'Jane Doe'
+user.username = 'Jane Doe'
 user.save()
 
 # Delete a user
@@ -72,6 +73,35 @@ user.delete()
 bash
 $ python migrations.py run
 ```
+
+## 🛠️ Customization
+DBEasyORM allows developers to define custom fields to meet specific requirements. Here's an example of how to create a custom field:
+
+Example: Custom Field Creation
+```python
+from DBEasyORM.DB_fields.abstract import BaseField
+
+class PercentageField(BaseField):
+    def __init__(self, field_name=None, null=False, primary=False, unique=False, min=0, max=100):
+        super().__init__(float, field_name, null, primary, unique)
+        self.min = min
+        self.max = max
+
+    def get_basic_sql_line(self) -> str:
+        return f"{self.field_name} REAL"
+
+    def validate(self, value) -> None:
+        super().validate(value)
+        if not (self.min <= value <= self.max):
+            raise ValueError(f"Value for field '{self.field_name}' must be between {self.min} and {self.max}.")
+```
+You can now use this custom field in your models like any other field:
+
+```python
+class Product(Model):
+    discount = PercentageField()
+```
+
 ## 📚 Documentation
 Check out the Full Documentation for a complete guide on using DBEasyORM, including advanced querying, relationships, and configurations.
 
