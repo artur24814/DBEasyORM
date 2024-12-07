@@ -15,11 +15,9 @@ def test_Float_field_is_valid():
     assert FLOAT_FIELD.validate(10.1) is None
 
 
-def test_Float_field_unsupported_type_str():
+def test_Float_field_unsupported_types():
     with pytest.raises(TypeError):
         assert FLOAT_FIELD.validate('asdsfadf') is None
-
-
-def test_Float_field_unsupported_type_bool():
-    with pytest.raises(TypeError):
-        assert FLOAT_FIELD.validate('asdsfadf') is None
+        assert FLOAT_FIELD.validate(bool) is None
+        assert FLOAT_FIELD.validate(23) is None
+        assert FLOAT_FIELD.validate('23.0') is None

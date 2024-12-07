@@ -13,11 +13,8 @@ def test_BITE_FIELD_is_valid_value():
     assert BITE_FIELD.validate(b"hello") is None
 
 
-def test_BITE_FIELD_unsupported_type_int():
+def test_BITE_FIELD_unsupported_types():
     with pytest.raises(TypeError):
         assert BITE_FIELD.validate(12) is None
-
-
-def test_BITE_FIELD_unsupported_type_str():
-    with pytest.raises(TypeError):
         assert BITE_FIELD.validate("Hello") is None
+        assert BITE_FIELD.validate(12.3) is None

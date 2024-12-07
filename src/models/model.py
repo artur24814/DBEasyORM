@@ -28,16 +28,20 @@ class Model(ModelABC, metaclass=ModelMeta):
             setattr(self, field_name, kwargs.get(field_name))
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
     @id.setter
-    def id(self, value):
+    def id(self, value) -> None:
         if self._id != -1:
             raise ThePrimaryKeyIsImmutable()
         self._id = value
 
     def save(self) -> QueryExecutor:
+        for field_name, field_instance in self._fields.items():
+            value = getattr(self, field_name, None)
+            field_instance.validate(value)
+
         if self.id != -1:
             return self.query_creator.create(**self._fields)
 

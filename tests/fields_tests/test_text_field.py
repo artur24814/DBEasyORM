@@ -13,6 +13,8 @@ def test_Text_field_is_valid():
     assert TEXT_FIELD.validate('sdfsdfdsfgds') is None
 
 
-def test_Text_field_unsupported_type():
+def test_Text_field_unsupported_types():
     with pytest.raises(TypeError):
         assert TEXT_FIELD.validate(12) is None
+        assert TEXT_FIELD.validate(True) is None
+        assert TEXT_FIELD.validate(12.23) is None

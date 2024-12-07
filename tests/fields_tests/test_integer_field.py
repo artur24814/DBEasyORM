@@ -15,16 +15,14 @@ def test_integer_field_is_valid():
     assert INTEGER_FIELD.validate(10) is None
 
 
-def test_integer_field_unsupported_type():
+def test_integer_field_unsupported_types():
     with pytest.raises(TypeError):
         assert INTEGER_FIELD.validate('asdsfadf') is None
+        assert INTEGER_FIELD.validate(True) is None
+        assert INTEGER_FIELD.validate(1.23) is None
 
 
-def test_integer_field_out_of_max_range():
+def test_integer_field_out_of_range():
     with pytest.raises(TypeError):
-        assert INTEGER_FIELD.validate(23) is None
-
-
-def test_integer_field_out_of_min_range():
-    with pytest.raises(TypeError):
+        assert INTEGER_FIELD.validate(-1) is None
         assert INTEGER_FIELD.validate(23) is None
