@@ -1,5 +1,5 @@
 import pytest
-from src.DB_fields import fields
+from src import fields
 
 
 FLOAT_FIELD = fields.FloatField(field_name="price", unique=True)

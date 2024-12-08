@@ -1,5 +1,5 @@
 import pytest
-from src.DB_fields import fields
+from src import fields
 
 
 BOOLEAN_FIELD = fields.BooleanField(field_name="is_active", unique=True)

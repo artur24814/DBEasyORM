@@ -1,7 +1,7 @@
 import pytest
 
 from src.models.model import Model
-from src.DB_fields import fields
+from src import fields
 
 
 @pytest.fixture

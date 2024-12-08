@@ -1,5 +1,5 @@
 import pytest
-from src.DB_fields import fields
+from src import fields
 
 
 BYTE_FIELD = fields.ByteField(field_name="image_bite", unique=True)

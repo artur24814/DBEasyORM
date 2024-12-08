@@ -1,5 +1,5 @@
 from src.query_creator.query_creator import QueryCreator
-from src.DB_fields.abstract import BaseField
+from src.fields.abstract import BaseField
 from src.DB_query.query_executor import QueryExecutor
 
 from .abstract import ModelABC
