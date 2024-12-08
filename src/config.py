@@ -18,8 +18,8 @@ def set_database_backend(backend_name, *args, **kwargs):
     global _active_backend
 
     if (backend := _registered_backends.get(backend_name)):
-        _active_backend = backend
-        _active_backend.connect(**kwargs)
+        _active_backend = backend(*args, **kwargs)
+        _active_backend.connect(*args, **kwargs)
     else:
         raise ValueError(f"Unsupported backend: {backend_name}")
 

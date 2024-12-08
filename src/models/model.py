@@ -1,6 +1,5 @@
-from src.query_creator.query_creator import QueryCreator
 from src.fields.abstract import BaseField
-from src.DB_query.query_executor import QueryExecutor
+from src.query.query_creator import QueryCreator
 
 from .abstract import ModelABC
 from .exeptions import ThePrimaryKeyIsImmutable
@@ -37,7 +36,7 @@ class Model(ModelABC, metaclass=ModelMeta):
             raise ThePrimaryKeyIsImmutable()
         self._id = value
 
-    def save(self) -> QueryExecutor:
+    def save(self) -> QueryCreator:
         for field_name, field_instance in self._fields.items():
             value = getattr(self, field_name, None)
             field_instance.validate(value)
@@ -47,5 +46,5 @@ class Model(ModelABC, metaclass=ModelMeta):
 
         return self.query_creator.update(**self._fields)
 
-    def delete(self) -> QueryExecutor:
+    def delete(self) -> QueryCreator:
         return self.query_creator.delete(self.id)

@@ -32,7 +32,7 @@ class BaseField(metaclass=BaseFieldMeta):
 
         return sql_line
 
-    def get_basic_sql_line(self) -> str:
+    def get_basic_sql_line(self, sql_type: str) -> str:
         raise NotImplementedError("This method must be implemented in subclasses")
 
     def validate(self, value):

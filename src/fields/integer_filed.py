@@ -7,8 +7,8 @@ class IntegerField(BaseField):
         self.min = min
         self.max = max
 
-    def get_basic_sql_line(self) -> str:
-        return f'{self.field_name} INTEGER'
+    def get_basic_sql_line(self, sql_type="INTEGER") -> str:
+        return f'{self.field_name} {sql_type}'
 
     def validate(self, value) -> None:
         super().validate(value)
