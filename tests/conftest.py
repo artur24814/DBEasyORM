@@ -3,12 +3,19 @@ import tempfile
 
 from src import fields, set_database_backend
 
+from src.db.backends import SQLiteBackend
+
 
 @pytest.fixture
 def testing_db():
     _, db_path = tempfile.mkstemp()
     set_database_backend("sqlite", database_path=db_path)
     yield db_path
+
+
+@pytest.fixture
+def sqlite_backend(testing_db):
+    return SQLiteBackend(database_path=testing_db)
 
 
 @pytest.fixture

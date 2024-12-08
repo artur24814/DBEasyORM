@@ -22,7 +22,7 @@ class DataBaseBackend(ABC):
     def execute(self, query: str, params=None):
         ...
 
-    def generate_insert_sql(self, table_name: str, columns: tuple, placeholders: tuple) -> str:
+    def generate_insert_sql(self, table_name: str, columns: tuple) -> str:
         ...
 
     @abstractmethod
