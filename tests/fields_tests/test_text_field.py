@@ -1,5 +1,5 @@
 import pytest
-from src.DB_fields import fields
+from src import fields
 
 
 TEXT_FIELD = fields.TextField(field_name="email", null=True, unique=True, primary=True)

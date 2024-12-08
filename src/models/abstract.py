@@ -1,9 +1,9 @@
-from src.DB_query.query_executor import QueryExecutor
+from src.query.query_creator import QueryCreatorABC
 
 
 class ModelABC:
-    def save(self) -> QueryExecutor:
+    def save(self) -> QueryCreatorABC:
         ...
 
-    def delete(self) -> QueryExecutor:
+    def delete(self) -> QueryCreatorABC:
         ...
