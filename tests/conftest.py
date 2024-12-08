@@ -3,7 +3,7 @@ import tempfile
 
 from src import fields, set_database_backend
 
-from src.db.backends import SQLiteBackend
+from src.db.backends import SQLiteBackend, PostgreSQLBackend
 
 
 @pytest.fixture
@@ -16,6 +16,16 @@ def testing_db():
 @pytest.fixture
 def sqlite_backend(testing_db):
     return SQLiteBackend(database_path=testing_db)
+
+
+@pytest.fixture
+def postgres_backend():
+    return PostgreSQLBackend(
+        host="localhost",
+        database="mydb",
+        user="myuser",
+        password="mypassword"
+    )
 
 
 @pytest.fixture

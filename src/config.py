@@ -1,10 +1,11 @@
-from .db.backends import SQLiteBackend
+from .db.backends import SQLiteBackend, PostgreSQLBackend
 
 
 _active_backend = None
 
 _registered_backends = {
-    "sqlite": SQLiteBackend
+    "sqlite": SQLiteBackend,
+    "postgresql": PostgreSQLBackend
 }
 
 
