@@ -11,4 +11,7 @@ class BooleanField(BaseField):
     def validate(self, value) -> None:
         super().validate(value)
         if value not in (0, 1):
-            raise TypeError(f"The value {value} cannot be converted to a logical value")
+            raise TypeError(
+                f"Invalid value for field '{self.field_name}': "
+                f"The value {value} cannot be converted to a logical value"
+            )

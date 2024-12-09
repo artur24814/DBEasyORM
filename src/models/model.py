@@ -22,7 +22,8 @@ class ModelMeta(type):
 
 class Model(ModelABC, metaclass=ModelMeta):
     def __init__(self, **kwargs):
-        for field_name in self._fields:
+        for field_name, field_instance in self._fields.items():
+            field_instance.field_name = field_name
             setattr(self, field_name, kwargs.get(field_name))
         self._id = kwargs.get('_id', -1)
 
@@ -47,7 +48,7 @@ class Model(ModelABC, metaclass=ModelMeta):
 
         if self.id == -1:
             return self.query_creator.create(**self._dict_fields)
-        return self.query_creator.update(**self._dict_fields, id=self.id)
+        return self.query_creator.update(where=dict(_id=self.id), **self._dict_fields)
 
     def delete(self) -> QueryCreator:
-        return self.query_creator.delete(self.id)
+        return self.query_creator.delete(where=dict(_id=self.id))

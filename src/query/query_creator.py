@@ -33,8 +33,8 @@ class QueryCreator(QueryCreatorABC):
         return [self._map_row_to_object(row) for row in rows]
 
     def _map_row_to_object(self, row) -> object:
-        field_names = [field for field in self.model._fields.keys()]
-        data = dict(zip(field_names, row))
+        column_names = [desc[0] for desc in self.backend.cursor.description]
+        data = dict(zip(column_names, row))
         return self.model(**data)
 
     def get_table_name(self) -> str:
@@ -55,29 +55,24 @@ class QueryCreator(QueryCreatorABC):
         self.values = tuple(kwargs.values())
         return self
 
-    def update(self, id=None, *args, **kwargs) -> QueryCreatorABC:
+    def update(self, where: dict = None, *args, **kwargs) -> QueryCreatorABC:
         self.setup_new_query_params()
         self.sql = self.backend.generate_update_sql(
             table_name=self.get_table_name(),
-            set_clause=self.model._fields.keys(),
-            where_clause=('id',)
+            set_clause=tuple(kwargs.keys()),
+            where_clause=tuple(where.keys())
         )
         self.return_id = True
-        self.values = []
-        for field_name, _ in self.model._fields.items():
-            value = getattr(self, field_name, None)
-            self.values.append(value)
-
-        self.values.append(id)
+        self.values = tuple(list(kwargs.values()) + list(where.values()))
         return self
 
-    def delete(self, id) -> QueryCreatorABC:
+    def delete(self, where: dict = None) -> QueryCreatorABC:
         self.setup_new_query_params()
         self.sql = self.backend.generate_delete_sql(
             table_name=self.get_table_name(),
-            where_clause=('id',)
+            where_clause=tuple(where.keys())
         )
-        self.values = [id]
+        self.values = tuple(where.values())
         return self
 
     def all(self, *args, **kwargs) -> QueryCreatorABC:
