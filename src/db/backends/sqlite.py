@@ -53,10 +53,10 @@ class SQLiteBackend(DataBaseBackend):
         return f"SELECT {', '.join(columns)} FROM {table_name}{where_sql}{limit_offset_sql}"
 
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple):
-        set_sql = ', '.join([f"{col} = {self.get_placeholder()}" for col in set_clause])
-        where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause[0]]) if where_clause else ""
+        set_sql = ', '.join([f"{col}={self.get_placeholder()}" for col in set_clause])
+        where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"UPDATE {table_name} SET {set_sql} WHERE {where_sql}"
 
     def generate_delete_sql(self, table_name: str, where_clause: tuple):
-        where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause]) if where_clause else ""
+        where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql}"

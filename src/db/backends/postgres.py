@@ -60,7 +60,7 @@ class PostgreSQLBackend(DataBaseBackend):
 
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple):
         set_sql = ', '.join([f"{col} = {self.get_placeholder()}" for col in set_clause])
-        where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause[0]]) if where_clause else ""
+        where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"UPDATE {table_name} SET {set_sql} WHERE {where_sql} RETURNING *"
 
     def generate_delete_sql(self, table_name: str, where_clause: tuple):

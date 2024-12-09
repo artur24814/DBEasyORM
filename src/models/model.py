@@ -36,15 +36,18 @@ class Model(ModelABC, metaclass=ModelMeta):
             raise ThePrimaryKeyIsImmutable()
         self._id = value
 
+    @property
+    def _dict_fields(self) -> dict:
+        return {field_name: getattr(self, field_name, None) for field_name in self._fields.keys()}
+
     def save(self) -> QueryCreator:
         for field_name, field_instance in self._fields.items():
             value = getattr(self, field_name, None)
             field_instance.validate(value)
 
-        if self.id != -1:
-            return self.query_creator.create(**self._fields)
-
-        return self.query_creator.update(**self._fields)
+        if self.id == -1:
+            return self.query_creator.create(**self._dict_fields)
+        return self.query_creator.update(**self._dict_fields, id=self.id)
 
     def delete(self) -> QueryCreator:
         return self.query_creator.delete(self.id)
