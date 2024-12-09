@@ -82,6 +82,11 @@ class QueryCreator(QueryCreatorABC):
 
     def all(self, *args, **kwargs) -> QueryCreatorABC:
         self.setup_new_query_params()
+        self.sql = self.backend.generate_select_sql(
+            table_name=self.get_table_name(),
+            columns=kwargs.get('columns', None)
+        )
+        self.many = True
         return self
 
     def get_one(self, *args, **kwargs) -> QueryCreatorABC:

@@ -24,7 +24,7 @@ def get_custome_test_model():
 def migrate_custome_test_model(custome_test_model):
     query_create_table = """
         CREATE TABLE IF NOT EXISTS CUSTOMETESTMODEL (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        _id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         age INTEGER,

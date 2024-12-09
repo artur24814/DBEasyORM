@@ -2,8 +2,8 @@ from .abstract import BaseField
 
 
 class IntegerField(BaseField):
-    def __init__(self, field_name=None, null=False, primary=False, unique=False, min=None, max=None):
-        super().__init__(int, field_name, null, primary, unique)
+    def __init__(self, field_name=None, null=False, primary=False, autoincrement=False, unique=False, min=None, max=None):
+        super().__init__(int, field_name, null, primary, unique, autoincrement)
         self.min = min
         self.max = max
 

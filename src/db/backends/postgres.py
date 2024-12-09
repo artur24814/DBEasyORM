@@ -45,7 +45,7 @@ class PostgreSQLBackend(DataBaseBackend):
         placeholders = ', '.join([self.get_placeholder() for _ in columns])
         return f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders}) RETURNING id"
 
-    def generate_select_sql(self, table_name: str, columns: tuple, where_clause: tuple, limit: int = None, offset: int = None) -> str:
+    def generate_select_sql(self, table_name: str, columns: tuple, where_clause: tuple = None, limit: int = None, offset: int = None) -> str:
         where_sql = ""
         if where_clause:
             where_sql = " WHERE " + " AND ".join([f"{col} = {val}" for col, val in zip(where_clause[0], where_clause[1])])
@@ -56,7 +56,7 @@ class PostgreSQLBackend(DataBaseBackend):
         if offset is not None:
             limit_offset_sql += f" OFFSET {offset}"
 
-        return f"SELECT {', '.join(columns)} FROM {table_name}{where_sql}{limit_offset_sql}"
+        return f"SELECT {', '.join(columns) if columns else '*'} FROM {table_name}{where_sql}{limit_offset_sql}"
 
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple):
         set_sql = ', '.join([f"{col} = {self.get_placeholder()}" for col in set_clause])
