@@ -39,10 +39,10 @@ class SQLiteBackend(DataBaseBackend):
         placeholders = ', '.join([self.get_placeholder() for _ in columns])
         return f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders})"
 
-    def generate_select_sql(self, table_name: str, columns: tuple, where_clause: tuple = None, limit: int = None, offset: int = None) -> str:
+    def generate_select_sql(self, table_name: str, columns: tuple, where_clause: dict = None, limit: int = None, offset: int = None) -> str:
         where_sql = ""
         if where_clause:
-            where_sql = " WHERE " + " AND ".join([f"{col} = {val}" for col, val in zip(where_clause[0], where_clause[1])])
+            where_sql = " WHERE " + " AND ".join([f"{col} = " + self.get_sql_val_repr(val) for col, val in where_clause.items()])
 
         limit_offset_sql = ""
         if limit is not None:

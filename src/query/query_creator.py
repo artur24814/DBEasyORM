@@ -76,18 +76,18 @@ class QueryCreator(QueryCreatorABC):
         return self
 
     def all(self, *args, **kwargs) -> QueryCreatorABC:
+        return self.filter(*args)
+
+    def filter(self, *args, **kwargs) -> QueryCreatorABC:
         self.setup_new_query_params()
         self.sql = self.backend.generate_select_sql(
             table_name=self.get_table_name(),
-            columns=kwargs.get('columns', None)
+            columns=kwargs.get('columns', None),
+            where_clause=kwargs
         )
         self.many = True
         return self
 
     def get_one(self, *args, **kwargs) -> QueryCreatorABC:
-        self.setup_new_query_params()
-        return self
-
-    def filter(self, *args, **kwargs) -> QueryCreatorABC:
         self.setup_new_query_params()
         return self

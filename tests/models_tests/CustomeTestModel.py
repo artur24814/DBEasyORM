@@ -36,12 +36,12 @@ def migrate_custome_test_model(custome_test_model):
     custome_test_model.query_creator.backend.execute(query=query_create_table)
 
 
-def create_custome_test_model():
+def create_custome_test_model(name=None, email=None, salary=None):
     CustomeTestModel = get_custome_test_model()
     return CustomeTestModel(
-        name=fake.name(),
-        email=fake.email(),
+        name=name if name else fake.name(),
+        email=email if email else fake.email(),
         is_admin=random.choice([0, 1]),
         age=random.randint(15, 45),
-        salary=round(random.uniform(5.000, 15.000), 3)
+        salary=salary if salary else round(random.uniform(5.000, 15.000), 3)
     )
