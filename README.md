@@ -64,33 +64,193 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
 ```
 
 2. Define Models
-```python
-from DBEasyORM.models.model import Model
-from DBEasyORM.DB_fields import fields
+    ```python
+    from DBEasyORM.models.model import Model
+    from DBEasyORM.DB_fields import fields
 
-class User(Model):
-    username = fields.TextField(null=True)
-    email = fields.TextField(unique=True)
-    age = fields.IntegerField(min=0)
-```
+    class User(Model):
+        name = fields.TextField()
+        email = fields.TextField(unique=True)
+        is_admin = fields.BooleanField(null=True)
+        age = fields.IntegerField(min=0)
+        salary = fields.FloatField(null=True)
+    ```
 
 3. Perform CRUD Operations
-```python
-# Create a new user
-new_user = User(username='John Doe', email='john@example.com', age=18)
-new_user.save().execute()
+* Create New Models
+    ### Using save Method
+    The save method allows you to create a new model instance and persist it to the database. Example:
 
-# Fetch all users
-users = User.all().execute()
+    ```python
+    # Create a new instance and generate quey
+    new_test_model = User(
+        name="John Doe",
+        email="john@example.com",
+        age=30
+    )
+    
+    new_test_model.save()
 
-# Update a user
-user = User.get_one(1).execute()
-user.username = 'Jane Doe'
-user.save()
+    # Verify the instance
+    assert new_test_model.id == -1
+    assert new_test_model.query_creator.return_id is True
 
-# Delete a user
-user.delete()
-```
+    # Execute query and create the instance
+    returned_value = new_test_model.query_creator.execute()
+    assert returned_value == 1
+    ```
+    ### Using create Method
+    The create method simplifies model instantiation and saving in a single step. Example:
+
+    ```python
+    # Create and save a new model
+    instance_id = User.query_creator.create(
+        name="Jon",
+        email="jon@example.com",
+        age=34,
+        is_admin=1,
+        salary=13.000
+    ).execute()
+
+    # Verify the ID
+    assert instance_id == 1
+    ```
+
+2. Read Models
+* Fetch All Instances
+
+    Retrieve all instances of a model using the all query.
+
+    ```python
+    # Fetch all existing instances
+    queryset = User.query_creator.all().execute()
+    assert len(queryset) == 0
+
+    # Add and retrieve instances
+    new_test_model1 = User(
+        name="Model1",
+        email="test1@example.com",
+        age=34,
+        is_admin=1,
+        salary=13.000
+    )
+    new_test_model1.save().execute()
+
+    new_test_model2 = User(
+        name="Model2",
+        email="test2@example.com",
+        age=41,
+        is_admin=0,
+        salary=7.000
+    )
+    new_test_model2.save().execute()
+
+    queryset = User.query_creator.all().execute()
+    assert len(queryset) == 2
+    assert isinstance(queryset[0], User)
+    ```
+* Filter Instances
+
+    Filter models based on specific attributes:
+
+    ```python
+    from faker import Faker
+    import random
+
+    fake = Faker()
+
+    def create_custome_test_model(name=None, email=None, salary=None):
+        return User(
+            name=name if name else fake.name(),
+            email=email if email else fake.email(),
+            is_admin=random.choice([0, 1]),
+            age=random.randint(15, 45),
+            salary=salary if salary else round(random.uniform(5.000, 15.000), 3)
+        )
+
+    # Create test models
+    for _ in range(10):
+        create_custome_test_model(name="Test").save().execute()
+
+    for _ in range(15):
+        create_custome_test_model(salary=12.00).save().execute()
+
+    # Filter by name
+    queryset_name = User.query_creator.filter(name="Test").execute()
+    assert len(queryset_name) == 10
+
+    # Filter by salary
+    queryset_salary = User.query_creator.filter(salary=12.00).execute()
+    assert len(queryset_salary) == 15
+    ```
+* Fetch a Single Instance
+
+    Retrieve a single instance matching a condition:
+
+    ```python
+    # Create test models
+    create_custome_test_model(name="Test").save().execute()
+    create_custome_test_model(salary=12.00).save().execute()
+
+    # Get one instance by attribute
+    queryset_name = User.query_creator.get_one(name="Test").execute()
+    assert isinstance(queryset_name, User)
+
+    # Handle non-existent instance
+    import pytest
+    from src.query import TheInstanceDoesNotExistExeption
+
+    with pytest.raises(TheInstanceDoesNotExistExeption):
+        User.query_creator.get_one(name="NonExistent").execute()
+    ```
+3. Update Models
+
+    Update Attributes of Existing Models
+    To modify a model, update its attributes and call `save`:
+
+    ```python
+    # Create and retrieve a model
+    User.query_creator.create(
+        name="Old Name",
+        email="test2@example.com",
+        age=41,
+        is_admin=0,
+        salary=7.000
+    ).save().execute()
+
+    model = User.query_creator.all().execute()[0]
+
+    # Update the name
+    model.name = "Updated Name"
+    model.save().execute()
+
+    # Verify the update
+    updated_model = User.query_creator.all().execute()[0]
+    assert updated_model.name == "Updated Name"
+    ```
+4. Delete Models.
+
+    Delete a Specific Model
+    To delete a specific instance:
+
+    ```python
+    # Create and fetch instances
+    User.query_creator.create(
+        name="Jon",
+        email="test2@example.com",
+        age=41,
+        is_admin=0,
+        salary=7.000
+    ).save().execute()
+    model = User.query_creator.all().execute()[0]
+
+    # Delete the instance
+    model.delete().execute()
+
+    # Verify deletion
+    queryset_after_delete = User.query_creator.all().execute()
+    assert len(queryset_after_delete) == 0
+    ```
 
 4. Migrations
 ```
