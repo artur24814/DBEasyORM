@@ -1,5 +1,6 @@
 from .abstract import QueryCreatorABC
 from src.config import _get_active_backend
+from .exeptions import TheInstanceDoesNotExistExeption
 
 
 class QueryCreator(QueryCreatorABC):
@@ -25,7 +26,7 @@ class QueryCreator(QueryCreatorABC):
     def _fetch_one(self, cursor) -> object:
         data = cursor.fetchone()
         if not data:
-            return None
+            raise TheInstanceDoesNotExistExeption(instance_class=self.get_class_name())
         return self._map_row_to_object(data)
 
     def _fetch_all(self, cursor) -> list:
@@ -73,6 +74,7 @@ class QueryCreator(QueryCreatorABC):
             where_clause=tuple(where.keys())
         )
         self.values = tuple(where.values())
+        self.return_id = True
         return self
 
     def all(self, *args, **kwargs) -> QueryCreatorABC:
@@ -89,5 +91,6 @@ class QueryCreator(QueryCreatorABC):
         return self
 
     def get_one(self, *args, **kwargs) -> QueryCreatorABC:
-        self.setup_new_query_params()
+        self.filter(*args, **kwargs)
+        self.many = False
         return self
