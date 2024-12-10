@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class DataBaseBackend(ABC):
+
     @abstractmethod
     def get_placeholder(self) -> str:
         ...
@@ -36,3 +37,6 @@ class DataBaseBackend(ABC):
     @abstractmethod
     def generate_delete_sql(self, table_name: str, where_clause: tuple) -> str:
         ...
+
+    def get_sql_val_repr(self, value):
+        return f"'{value}'" if isinstance(value, str) else f"{value}"

@@ -13,4 +13,6 @@ class ByteField(BaseField):
         try:
             value.decode()
         except (UnicodeDecodeError, AttributeError):
-            raise TypeError("The value is not the byte-like object")
+            raise TypeError(
+                 f"Invalid value for field '{self.field_name}': "
+                 f"The {value} is not the byte-like object")
