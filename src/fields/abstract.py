@@ -10,20 +10,22 @@ class BaseFieldMeta(type):
 
 
 class BaseField(metaclass=BaseFieldMeta):
-    def __init__(self, python_type, field_name=None, null=False, primary=False, unique=False, autoincrement=False):
+    def __init__(self, python_type, field_name=None, null=False, primary=False, unique=False, autoincrement=False, default=None):
         self.python_type = python_type
         self.field_name = field_name
         self.null = null
         self.primary = primary
         self.unique = unique
         self.autoincrement = autoincrement
+        self.default = default
+        self.value = self.default if self.default else None
 
     def __repr__(self):
         constrains_repr = ' '.join([f"{attr_name}={str(attr_value)}" for attr_name, attr_value in self._constraints])
         return f"<Field field_name={self.field_name} {constrains_repr}>"
 
-    def get_sql_line(self) -> str:
-        sql_line = self.get_basic_sql_line()
+    def get_sql_line(self, *args, **kwargs) -> str:
+        sql_line = self.get_basic_sql_line(**kwargs)
         if self.primary:
             sql_line += ' PRIMARY KEY'
         if self.autoincrement and self.primary:

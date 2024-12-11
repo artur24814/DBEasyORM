@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from src.fields import BaseField
 
 
 class DataBaseBackend(ABC):
@@ -16,6 +17,10 @@ class DataBaseBackend(ABC):
         ...
 
     @abstractmethod
+    def get_foreign_key_constraint(self, field_name, related_table, on_delete) -> str:
+        ...
+
+    @abstractmethod
     def connect(self, *args, **kwargs) -> object:
         ...
 
@@ -28,7 +33,7 @@ class DataBaseBackend(ABC):
 
     @abstractmethod
     def generate_select_sql(self, table_name: str, columns: tuple, where_clause: tuple, limit: int = None, offset: int = None) -> str:
-        pass
+        ...
 
     @abstractmethod
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple) -> str:
@@ -36,6 +41,10 @@ class DataBaseBackend(ABC):
 
     @abstractmethod
     def generate_delete_sql(self, table_name: str, where_clause: tuple) -> str:
+        ...
+
+    @abstractmethod
+    def generate_migrate_table(self, table_name: str, fields: BaseField):
         ...
 
     def get_sql_val_repr(self, value):

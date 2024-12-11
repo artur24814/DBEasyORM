@@ -2,8 +2,8 @@ from .abstract import BaseField
 
 
 class BooleanField(BaseField):
-    def __init__(self, field_name=None, null=False, primary=False, unique=False):
-        super().__init__(int, field_name, null, primary, unique)
+    def __init__(self, field_name=None, null=False, primary=False, unique=False, default=None):
+        super().__init__(int, field_name, null, primary, unique, default)
 
     def get_basic_sql_line(self, sql_type="INTEGER") -> str:
         return f"{self.field_name} {sql_type}"

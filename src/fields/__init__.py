@@ -4,6 +4,7 @@ from .byte_field import ByteField
 from .float_field import FloatField
 from .integer_filed import IntegerField
 from .text_field import TextField
+from .foreign_key import ForeignKey
 
 
 __all__ = [
@@ -12,5 +13,6 @@ __all__ = [
     "ByteField",
     "FloatField",
     "IntegerField",
-    "TextField"
+    "TextField",
+    "ForeignKey"
 ]

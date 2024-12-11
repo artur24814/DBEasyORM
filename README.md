@@ -77,8 +77,9 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     ```
 
 3. Perform CRUD Operations
+
 * Create New Models
-    ### Using save Method
+    #### Using save Method
     The save method allows you to create a new model instance and persist it to the database. Example:
 
     ```python
@@ -99,7 +100,7 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     returned_value = new_test_model.query_creator.execute()
     assert returned_value == 1
     ```
-    ### Using create Method
+    #### Using create Method
     The create method simplifies model instantiation and saving in a single step. Example:
 
     ```python
@@ -116,8 +117,8 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     assert instance_id == 1
     ```
 
-2. Read Models
-* Fetch All Instances
+* Read Models
+    #### Fetch All Instances
 
     Retrieve all instances of a model using the all query.
 
@@ -149,7 +150,7 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     assert len(queryset) == 2
     assert isinstance(queryset[0], User)
     ```
-* Filter Instances
+    #### Filter Instances
 
     Filter models based on specific attributes:
 
@@ -183,7 +184,7 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     queryset_salary = User.query_creator.filter(salary=12.00).execute()
     assert len(queryset_salary) == 15
     ```
-* Fetch a Single Instance
+    #### Fetch a Single Instance
 
     Retrieve a single instance matching a condition:
 
@@ -203,7 +204,7 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     with pytest.raises(TheInstanceDoesNotExistExeption):
         User.query_creator.get_one(name="NonExistent").execute()
     ```
-3. Update Models
+* Update Models
 
     Update Attributes of Existing Models
     To modify a model, update its attributes and call `save`:
@@ -228,7 +229,7 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     updated_model = User.query_creator.all().execute()[0]
     assert updated_model.name == "Updated Name"
     ```
-4. Delete Models.
+* Delete Models.
 
     Delete a Specific Model
     To delete a specific instance:

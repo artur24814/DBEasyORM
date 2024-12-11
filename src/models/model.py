@@ -7,12 +7,13 @@ from .exeptions import ThePrimaryKeyIsImmutable
 
 class ModelMeta(type):
     def __new__(cls, name, bases, attrs):
-        fields = {'_id': IntegerField(null=False, primary=True, autoincrement=True)}
+        fields = {'_id': IntegerField(field_name='_id', null=False, primary=True, autoincrement=True)}
 
         # Loop through class attributes and find instances of BaseField
         for attr_name, attr_value in attrs.items():
             if isinstance(attr_value, BaseField):
                 fields[attr_name] = attr_value
+                attr_value.field_name = attr_name
 
         attrs['_fields'] = fields
         new_cls = super().__new__(cls, name, bases, attrs)
@@ -23,8 +24,10 @@ class ModelMeta(type):
 class Model(ModelABC, metaclass=ModelMeta):
     def __init__(self, **kwargs):
         for field_name, field_instance in self._fields.items():
-            field_instance.field_name = field_name
-            setattr(self, field_name, kwargs.get(field_name))
+            if field_instance.default is not None and kwargs.get(field_name) is None:
+                setattr(self, field_name, field_instance.default)
+            else:
+                setattr(self, field_name, kwargs.get(field_name))
         self._id = kwargs.get('_id', -1)
 
     @property
@@ -52,3 +55,7 @@ class Model(ModelABC, metaclass=ModelMeta):
 
     def delete(self) -> QueryCreator:
         return self.query_creator.delete(where=dict(_id=self.id))
+
+    @classmethod
+    def migrate(cls) -> QueryCreator:
+        return cls.query_creator.migrate_table(**cls._fields)

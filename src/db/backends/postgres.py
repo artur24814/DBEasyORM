@@ -1,5 +1,6 @@
 import psycopg2
 from .abstract import DataBaseBackend
+from src.fields import BaseField, ForeignKey
 
 
 class PostgreSQLBackend(DataBaseBackend):
@@ -35,6 +36,13 @@ class PostgreSQLBackend(DataBaseBackend):
         self.cursor = self.connection.cursor()
         return self
 
+    def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
+        return (
+            f"CONSTRAINT fk_{field_name}_to_{related_table} "
+            f"FOREIGN KEY ({field_name}) REFERENCES {related_table} (id) "
+            f"ON DELETE {on_delete}"
+        )
+
     def execute(self, query: str, params=None) -> psycopg2.extensions.cursor:
         self.cursor.execute(query, params or ())
         self.connection.commit()
@@ -66,3 +74,12 @@ class PostgreSQLBackend(DataBaseBackend):
     def generate_delete_sql(self, table_name: str, where_clause: tuple):
         where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql} RETURNING *"
+
+    def generate_migrate_table(self, table_name: str, fields: BaseField):
+        table_body = ", \n".join([
+            field.get_sql_line(self.get_foreign_key_constraint)
+            if isinstance(field, ForeignKey)
+            else field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
+            for field in fields
+        ])
+        return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
