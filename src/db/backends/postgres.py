@@ -38,8 +38,9 @@ class PostgreSQLBackend(DataBaseBackend):
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
         return (
+            f"id_{field_name} INTEGER, "
             f"CONSTRAINT fk_{field_name}_to_{related_table} "
-            f"FOREIGN KEY ({field_name}) REFERENCES {related_table} (id) "
+            f"FOREIGN KEY ({field_name}) REFERENCES {related_table} (_id) "
             f"ON DELETE {on_delete}"
         )
 
@@ -76,10 +77,17 @@ class PostgreSQLBackend(DataBaseBackend):
         return f"DELETE FROM {table_name} WHERE {where_sql} RETURNING *"
 
     def generate_migrate_table(self, table_name: str, fields: BaseField):
-        table_body = ", \n".join([
-            field.get_sql_line(self.get_foreign_key_constraint)
-            if isinstance(field, ForeignKey)
-            else field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
-            for field in fields
-        ])
+        columns = []
+        foreign_keys = []
+
+        for field in fields:
+            if isinstance(field, ForeignKey):
+                foreign_keys.append(
+                    field.get_sql_line(self.get_foreign_key_constraint)
+                )
+            else:
+                columns.append(
+                    field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
+                )
+        table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
