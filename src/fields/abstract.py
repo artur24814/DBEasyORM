@@ -21,8 +21,7 @@ class BaseField(metaclass=BaseFieldMeta):
         self.value = self.default if self.default else None
 
     def __repr__(self):
-        constrains_repr = ' '.join([f"{attr_name}={str(attr_value)}" for attr_name, attr_value in self._constraints])
-        return f"<Field field_name={self.field_name} {constrains_repr}>"
+        return f"<Field field_name={self.field_name} {self.__class__.__name__}>"
 
     def get_sql_line(self, *args, **kwargs) -> str:
         sql_line = self.get_basic_sql_line(**kwargs)
