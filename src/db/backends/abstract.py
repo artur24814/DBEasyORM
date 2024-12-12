@@ -47,5 +47,9 @@ class DataBaseBackend(ABC):
     def generate_table_schema(self, table_name: str, fields: BaseField):
         ...
 
+    @abstractmethod
+    def get_database_schemas(self) -> dict:
+        ...
+
     def get_sql_val_repr(self, value):
         return f"'{value}'" if isinstance(value, str) else f"{value}"

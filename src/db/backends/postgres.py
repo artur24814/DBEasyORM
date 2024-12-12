@@ -91,3 +91,19 @@ class PostgreSQLBackend(DataBaseBackend):
                 )
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
+
+    def get_database_schemas(self) -> dict:
+        schema = {}
+
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = self.cursor.fetchall()
+        for table in tables:
+            table_name = table[0]
+            if table_name == 'sqlite_sequence':
+                continue
+
+            self.cursor.execute(f"PRAGMA table_info({table_name});")
+            columns = self.cursor.fetchall()
+            schema[table_name] = {col[1]: col[2] for col in columns}
+
+        return schema

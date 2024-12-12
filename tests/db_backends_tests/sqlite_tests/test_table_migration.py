@@ -80,3 +80,30 @@ def test_using_model_after_migration_query(testing_db):
     assert len(queryset) == 2
     assert isinstance(queryset[0], CustomeTestModel) is True
     assert isinstance(queryset[1], CustomeTestModel) is True
+
+
+def test_get_table_schemas(testing_db):
+    CustomeTestModel = init_custome_test_model()
+    CustomeTestModel.migrate().backend.execute(query=CustomeTestModel.query_creator.sql)
+
+    PostTestModel = init_post_test_model_related_to(CustomeTestModel)
+    PostTestModel.migrate().backend.execute(query=PostTestModel.query_creator.sql)
+
+    expected_schemas = {
+        'CUSTOMETESTMODEL': {
+            '_id': 'INTEGER',
+            'name': 'TEXT',
+            'age': 'INTEGER',
+            'email': 'TEXT',
+            'is_admin': 'INTEGER',
+            'salary': 'REAL'
+        },
+        'POSTTESTMODEL': {
+            '_id': 'INTEGER',
+            'content': 'TEXT',
+            'id_autor': 'INTEGER',
+            'is_read': 'INTEGER'
+        }
+    }
+
+    assert CustomeTestModel.migrate().backend.get_database_schemas() == expected_schemas
