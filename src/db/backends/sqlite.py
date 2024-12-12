@@ -69,7 +69,7 @@ class SQLiteBackend(DataBaseBackend):
         where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql}"
 
-    def generate_migrate_table(self, table_name: str, fields: BaseField):
+    def generate_table_schema(self, table_name: str, fields: BaseField):
         columns = []
         foreign_keys = []
 

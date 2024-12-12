@@ -44,7 +44,7 @@ class DataBaseBackend(ABC):
         ...
 
     @abstractmethod
-    def generate_migrate_table(self, table_name: str, fields: BaseField):
+    def generate_table_schema(self, table_name: str, fields: BaseField):
         ...
 
     def get_sql_val_repr(self, value):

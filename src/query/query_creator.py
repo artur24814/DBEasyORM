@@ -96,7 +96,7 @@ class QueryCreator(QueryCreatorABC):
         return self
 
     def migrate_table(self, *args, **kwargs) -> QueryCreatorABC:
-        self.sql = self.backend.generate_migrate_table(
+        self.sql = self.backend.generate_table_schema(
             table_name=self.get_table_name(),
             fields=list(kwargs.values())
         )
