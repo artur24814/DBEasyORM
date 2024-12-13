@@ -1,7 +1,7 @@
 import argparse
 
+from src.migrations import MigrationHandler
 from .abstraction import BaseCommand
-from src.migrations import Migration
 
 
 class UpdateDatabaseCommand(BaseCommand):
@@ -19,7 +19,8 @@ class UpdateDatabaseCommand(BaseCommand):
         parser.add_argument("-r", "--restore", action="store_true", help="Restore database to the previous state")
 
     def handle(self, loockup_folder=None, id_migrations=None, restore=False, **kwargs) -> None:
-        return Migration.update_database(
+        mig_handler = MigrationHandler()
+        return mig_handler.update_database(
             loockup_folder=loockup_folder,
             id_migrations=id_migrations,
             restore=restore
