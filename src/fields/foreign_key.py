@@ -2,7 +2,7 @@ from .abstract import BaseField
 
 
 class ForeignKey(BaseField):
-    def __init__(self, related_model, field_name=None, null=False, primary=False, unique=False, on_delete="CASCADE"):
+    def __init__(self, related_model, field_name=None, null=True, primary=False, unique=False, on_delete="CASCADE"):
         super().__init__(int, field_name, null, primary, unique)
         self.related_model = related_model
         self.on_delete = on_delete

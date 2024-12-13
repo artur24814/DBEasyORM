@@ -48,7 +48,7 @@ def test_one_column_to_add_detected(testing_db):
 
     class PostTestModel(Model):
         is_read = fields.BooleanField(null=True)
-        id_autor = fields.ForeignKey(related_model=CustomeTestModel)
+        autor = fields.ForeignKey(related_model=CustomeTestModel)
         content = fields.TextField(null=True)
         title = fields.TextField()
 

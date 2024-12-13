@@ -60,4 +60,4 @@ class DataBaseBackend(ABC):
         ...
 
     def get_sql_val_repr(self, value):
-        return f"'{value}'" if isinstance(value, str) else f"{value}"
+        return f"'{value}'" if isinstance(value, str) else ("NULL" if value is None else f"{value}")

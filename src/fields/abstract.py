@@ -40,8 +40,14 @@ class BaseField(metaclass=BaseFieldMeta):
         raise NotImplementedError("This method must be implemented in subclasses")
 
     def validate(self, value):
-        if not isinstance(value, self.python_type):
+        if value is not None and not isinstance(value, self.python_type):
             raise TypeError(
                 f"Invalid value for field '{self.field_name}': "
                 f"expected {self.python_type.__name__}, got {type(value).__name__}."
+            )
+
+        if value is None and not self.null:
+            raise ValueError(
+                f"Invalid value for field '{self.field_name}': "
+                f"the value is expected, but got None."
             )

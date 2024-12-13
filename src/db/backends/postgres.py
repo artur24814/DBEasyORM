@@ -38,7 +38,7 @@ class PostgreSQLBackend(DataBaseBackend):
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
         return (
-            f"id_{field_name} INTEGER, "
+            f"{field_name} INTEGER, "
             f"CONSTRAINT fk_{field_name}_to_{related_table} "
             f"FOREIGN KEY ({field_name}) REFERENCES {related_table} (_id) "
             f"ON DELETE {on_delete}"

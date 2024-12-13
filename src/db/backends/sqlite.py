@@ -27,8 +27,8 @@ class SQLiteBackend(DataBaseBackend):
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
         return (
-            f"id_{field_name} INTEGER, "
-            f"FOREIGN KEY (id_{field_name}) REFERENCES {related_table} (_id) "
+            f"{field_name} INTEGER, "
+            f"FOREIGN KEY ({field_name}) REFERENCES {related_table} (_id) "
             f"ON DELETE {on_delete}"
         )
 
