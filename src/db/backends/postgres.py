@@ -4,7 +4,7 @@ from src.fields import BaseField, ForeignKey
 
 
 class PostgreSQLBackend(DataBaseBackend):
-    def __init__(self, host, database: str, user: str, password: str, port=5432):
+    def __init__(self, host, database: str, user: str, password: str, port=5432, *args, **kwargs):
         self.host = host
         self.database = database
         self.user = user
@@ -91,6 +91,16 @@ class PostgreSQLBackend(DataBaseBackend):
                 )
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
+
+    def generate_alter_table_sql(self, table_name: str, field: BaseField, *args, **kwargs) -> str:
+        if isinstance(field, ForeignKey):
+            field_sql = field.get_sql_line(self.get_foreign_key_constraint)
+        else:
+            field_sql = field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
+        return f"ALTER TABLE {table_name} ADD {field_sql};"
+
+    def generate_drop_table_sql(self, table_name: str) -> str:
+        return f"DROP TABLE {table_name}"
 
     def get_database_schemas(self) -> dict:
         schema = {}

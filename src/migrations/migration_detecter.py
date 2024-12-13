@@ -25,7 +25,7 @@ class MigrationDetecter:
         for model in models:
             model_table_name = model.query_creator.get_table_name()
             if self.is_tables_exists_in_models_but_not_in_db(model_table_name, db_schemas.keys()):
-                migrations["create_tables"].append(model_table_name)
+                migrations["create_tables"].append(model)
                 continue
 
             migrations = self.compare_cols_in_existing_tables(model_table_name, model, db_schemas, migrations)
@@ -45,7 +45,7 @@ class MigrationDetecter:
 
         for field_name, field_instance in model._fields.items():
             if field_name not in db_columns:
-                migrations["add_columns"].append((table_name, field_instance))
+                migrations["add_columns"].append((table_name, field_instance, model, db_columns))
 
         for column_name in db_columns.keys():
             if column_name not in list(model._fields.keys()):

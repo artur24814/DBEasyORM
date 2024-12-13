@@ -44,7 +44,15 @@ class DataBaseBackend(ABC):
         ...
 
     @abstractmethod
-    def generate_table_schema(self, table_name: str, fields: BaseField):
+    def generate_table_schema(self, table_name: str, fields: BaseField) -> str:
+        ...
+
+    @abstractmethod
+    def generate_alter_table_sql(self, table_name: str, *args, **kwargs) -> str:
+        ...
+
+    @abstractmethod
+    def generate_drop_table_sql(self, table_name: str) -> str:
         ...
 
     @abstractmethod

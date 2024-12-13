@@ -4,7 +4,7 @@ from src.fields import BaseField, ForeignKey
 
 
 class SQLiteBackend(DataBaseBackend):
-    def __init__(self, database_path: str):
+    def __init__(self, database_path: str, *args, **kwargs):
         self.database_path = database_path
         self.cursor = None
         self.connection = None
@@ -38,7 +38,11 @@ class SQLiteBackend(DataBaseBackend):
         return self
 
     def execute(self, query: str, params=None) -> sqlite3.Cursor:
-        self.cursor.execute(query, params or ())
+        # Split the query into individual statements and execute them
+        statements = query.strip().split(";")
+        for statement in statements:
+            if statement.strip():
+                self.cursor.execute(statement.strip(), params or ())
         self.connection.commit()
         return self.cursor
 
@@ -84,6 +88,20 @@ class SQLiteBackend(DataBaseBackend):
                 )
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
+
+    def generate_alter_table_sql(self, table_name: str, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
+        sql_result = ''
+        db_columns = ", ".join(db_columns.keys())
+
+        # sql_create_new_table_query
+        sql_result += self.generate_table_schema(f"{table_name}_NEW", list(model._fields.values()))
+        sql_result += f"""INSERT INTO {table_name}_NEW ({db_columns}) SELECT {db_columns} FROM {table_name};"""
+        sql_result += self.generate_drop_table_sql(table_name=table_name)
+        sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
+        return sql_result
+
+    def generate_drop_table_sql(self, table_name: str) -> str:
+        return f"DROP TABLE {table_name};"
 
     def get_database_schemas(self) -> dict:
         schema = {}

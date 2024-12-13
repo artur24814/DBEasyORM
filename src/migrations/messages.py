@@ -1,7 +1,14 @@
 from colorama import Fore, Style, init
+import shutil
 
 
 init(autoreset=True)
+
+
+def print_line(color, char="=", style=Style.NORMAL):
+    terminal_width = shutil.get_terminal_size().columns
+    line = char * terminal_width
+    print(f"{color}{style}{line}{Style.RESET_ALL}")
 
 
 def print_error(message):
