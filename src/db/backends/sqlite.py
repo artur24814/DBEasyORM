@@ -89,7 +89,8 @@ class SQLiteBackend(DataBaseBackend):
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
 
-    def generate_alter_table_sql(self, table_name: str, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
+    def generate_alter_table_sql(self, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
+        table_name = model.query_creator.get_table_name()
         sql_result = ''
         db_columns = ", ".join(db_columns.keys())
 

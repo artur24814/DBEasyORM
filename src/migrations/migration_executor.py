@@ -32,8 +32,8 @@ class MigrationExecutor:
         if isinstance(self.db_backend, SQLiteBackend):
             unique_dict = {item[0]: (item[0], item[1], item[2], item[3]) for item in columns}
             unique_list = list(unique_dict.values())
-            for table_name, _, model, db_columns in unique_list:
-                sql += self.db_backend.generate_alter_table_sql(table_name, model=model, db_columns=db_columns)
+            for _, _, model, db_columns in unique_list:
+                sql += self.db_backend.generate_alter_table_sql(model=model, db_columns=db_columns)
         else:
             for table_name, col, _, _ in columns:
                 sql += self.db_backend.generate_alter_table_sql(table_name=table_name, field=col)

@@ -48,7 +48,7 @@ class DataBaseBackend(ABC):
         ...
 
     @abstractmethod
-    def generate_alter_table_sql(self, table_name: str, *args, **kwargs) -> str:
+    def generate_alter_table_sql(self, *args, **kwargs) -> str:
         ...
 
     @abstractmethod
