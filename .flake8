@@ -4,5 +4,6 @@ exclude =
     env
     .env
     test.py
+    app/
 
 max-line-length = 200

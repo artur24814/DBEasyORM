@@ -6,7 +6,7 @@ from src import fields
 fake = Faker()
 
 
-def get_custome_test_model():
+def init_custome_test_model():
     from src.models.model import Model
 
     class CustomeTestModel(Model):
@@ -16,9 +16,24 @@ def get_custome_test_model():
         age = fields.IntegerField()
         salary = fields.FloatField(null=True)
 
-    model = CustomeTestModel
+    return CustomeTestModel
+
+
+def get_custome_test_model():
+    model = init_custome_test_model()
     migrate_custome_test_model(model)
     return model
+
+
+def init_post_test_model_related_to(related_model):
+    from src.models.model import Model
+
+    class PostTestModel(Model):
+        is_read = fields.BooleanField(null=True)
+        autor = fields.ForeignKey(related_model=related_model)
+        content = fields.TextField(null=True)
+
+    return PostTestModel
 
 
 def migrate_custome_test_model(custome_test_model):

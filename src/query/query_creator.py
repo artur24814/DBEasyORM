@@ -94,3 +94,10 @@ class QueryCreator(QueryCreatorABC):
         self.filter(*args, **kwargs)
         self.many = False
         return self
+
+    def migrate_table(self, *args, **kwargs) -> QueryCreatorABC:
+        self.sql = self.backend.generate_create_table_sql(
+            table_name=self.get_table_name(),
+            fields=list(kwargs.values())
+        )
+        return self
