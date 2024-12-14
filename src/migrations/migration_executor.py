@@ -17,6 +17,7 @@ class MigrationExecutor:
 
         self.sql = self.append_table_migration_sql(detected_migration.get('create_tables'), self.sql)
         self.sql = self.append_insert_cols_sql(detected_migration.get('add_columns'), self.sql)
+        self.sql = self.append_delete_cols_sql(detected_migration.get('remove_columns'), self.sql)
 
         self.db_backend.execute(query=self.sql)
         print_success("All database migrations applied")
@@ -37,4 +38,15 @@ class MigrationExecutor:
         else:
             for table_name, col, _, _ in columns:
                 sql += self.db_backend.generate_alter_table_sql(table_name=table_name, field=col)
+        return sql
+
+    def append_delete_cols_sql(self, columns: list, sql: str) -> str:
+        if isinstance(self.db_backend, SQLiteBackend):
+            unique_dict = {item[0]: (item[0], item[1], item[2]) for item in columns}
+            unique_list = list(unique_dict.values())
+            for _, _, model in unique_list:
+                sql += self.db_backend.generate_drop_field_sql(model=model)
+        else:
+            for table_name, col, _, _ in columns:
+                sql += self.db_backend.generate_drop_field_sql(table_name=table_name, field=col)
         return sql

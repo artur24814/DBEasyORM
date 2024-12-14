@@ -101,6 +101,18 @@ class SQLiteBackend(DataBaseBackend):
         sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
         return sql_result
 
+    def generate_drop_field_sql(self, model: BaseField, *args, **kwargs) -> str:
+        table_name = model.query_creator.get_table_name()
+        sql_result = ''
+        columns = ", ".join(model._fields.keys())
+
+        # sql_create_new_table_query
+        sql_result += self.generate_table_schema(f"{table_name}_NEW", list(model._fields.values()))
+        sql_result += f"""INSERT INTO {table_name}_NEW ({columns}) SELECT {columns} FROM {table_name};"""
+        sql_result += self.generate_drop_table_sql(table_name=table_name)
+        sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
+        return sql_result
+
     def generate_drop_table_sql(self, table_name: str) -> str:
         return f"DROP TABLE {table_name};"
 

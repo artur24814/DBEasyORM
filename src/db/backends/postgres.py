@@ -99,6 +99,9 @@ class PostgreSQLBackend(DataBaseBackend):
             field_sql = field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
         return f"ALTER TABLE {table_name} ADD {field_sql};"
 
+    def generate_drop_field_sql(self, table_name: str, field: BaseField, *args, **kwargs) -> str:
+        return f"ALTER TABLE {table_name} DROP COLUMN {field};"
+
     def generate_drop_table_sql(self, table_name: str) -> str:
         return f"DROP TABLE {table_name}"
 

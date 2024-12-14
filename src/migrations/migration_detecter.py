@@ -49,7 +49,7 @@ class MigrationDetecter:
 
         for column_name in db_columns.keys():
             if column_name not in list(model._fields.keys()):
-                migrations["remove_columns"].append((table_name, column_name))
+                migrations["remove_columns"].append((table_name, column_name, model))
 
         return migrations
 

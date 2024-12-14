@@ -58,7 +58,6 @@ def _get_folders_for_migration_search(config_file="dbeasyorm.ini"):
             config_parser.read(config_file)
             if (app_config := dict(config_parser["app"])):
                 app_dir = app_config.get("dir")
-                print('sdfasfas', app_dir)
                 if app_dir is None:
                     raise ValueError(
                         "The specified folder for your application in which we will search for migrations is missing."

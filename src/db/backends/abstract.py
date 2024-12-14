@@ -52,6 +52,10 @@ class DataBaseBackend(ABC):
         ...
 
     @abstractmethod
+    def generate_drop_field_sql(self, *args, **kwargs) -> str:
+        ...
+
+    @abstractmethod
     def generate_drop_table_sql(self, table_name: str) -> str:
         ...
 
