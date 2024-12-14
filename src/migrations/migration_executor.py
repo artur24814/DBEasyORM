@@ -16,6 +16,7 @@ class MigrationExecutor:
         print_line(Fore.BLUE, '-')
 
         self.sql = self.append_table_migration_sql(detected_migration.get('create_tables'), self.sql)
+        self.sql = self.append_delete_tables_sql(detected_migration.get('drop_tables'), self.sql)
         self.sql = self.append_insert_cols_sql(detected_migration.get('add_columns'), self.sql)
         self.sql = self.append_delete_cols_sql(detected_migration.get('remove_columns'), self.sql)
 
@@ -27,6 +28,11 @@ class MigrationExecutor:
             model.migrate()
             sql += model.query_creator.sql
             sql += " \n"
+        return sql
+
+    def append_delete_tables_sql(self, columns: list, sql: str) -> str:
+        for table_name in columns:
+            sql += self.db_backend.generate_drop_table_sql(table_name=table_name)
         return sql
 
     def append_insert_cols_sql(self, columns: list, sql: str) -> str:
