@@ -254,9 +254,20 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     ```
 
 4. Migrations
-```
-bash
+```bash
 $ python migrations.py run
+```
+
+all arguments:
+```bash
+$ dbeasyorm update-database --help              
+usage: cli.py update-database [-h] [-l LOOCKUP_FOLDER] [-i ID_MIGRATIONS] [-r] [-c CONFIG]
+
+options:
+  -l LOOCKUP_FOLDER, --loockup-folder Path to the lookup folder
+  -i ID_MIGRATIONS, --id-migrations ID of specific migrations
+  -r, --restore   Restore database to the previous state
+  -c CONFIG, --config  Path to the config.ini file
 ```
 
 ## 🛠️ Customization
