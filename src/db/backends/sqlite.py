@@ -73,7 +73,7 @@ class SQLiteBackend(DataBaseBackend):
         where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql}"
 
-    def generate_table_schema(self, table_name: str, fields: BaseField):
+    def generate_create_table_sql(self, table_name: str, fields: BaseField):
         columns = []
         foreign_keys = []
 
@@ -89,13 +89,13 @@ class SQLiteBackend(DataBaseBackend):
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
 
-    def generate_alter_table_sql(self, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
+    def generate_alter_field_sql(self, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
         table_name = model.query_creator.get_table_name()
         sql_result = ''
         db_columns = ", ".join(db_columns.keys())
 
         # sql_create_new_table_query
-        sql_result += self.generate_table_schema(f"{table_name}_NEW", list(model._fields.values()))
+        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", list(model._fields.values()))
         sql_result += f"""INSERT INTO {table_name}_NEW ({db_columns}) SELECT {db_columns} FROM {table_name};"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
         sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
@@ -107,7 +107,7 @@ class SQLiteBackend(DataBaseBackend):
         columns = ", ".join(model._fields.keys())
 
         # sql_create_new_table_query
-        sql_result += self.generate_table_schema(f"{table_name}_NEW", list(model._fields.values()))
+        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", list(model._fields.values()))
         sql_result += f"""INSERT INTO {table_name}_NEW ({columns}) SELECT {columns} FROM {table_name};"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
         sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"

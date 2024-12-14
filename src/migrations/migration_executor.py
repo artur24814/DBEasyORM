@@ -15,7 +15,7 @@ class MigrationExecutor:
         print_info(info_str)
         print_line(Fore.BLUE, '-')
 
-        self.sql = self.append_table_migration_sql(detected_migration.get('create_tables'), self.sql)
+        self.sql = self.append_table_creation_sql(detected_migration.get('create_tables'), self.sql)
         self.sql = self.append_delete_tables_sql(detected_migration.get('drop_tables'), self.sql)
         self.sql = self.append_insert_cols_sql(detected_migration.get('add_columns'), self.sql)
         self.sql = self.append_delete_cols_sql(detected_migration.get('remove_columns'), self.sql)
@@ -23,7 +23,7 @@ class MigrationExecutor:
         self.db_backend.execute(query=self.sql)
         print_success("All database migrations applied")
 
-    def append_table_migration_sql(self, models: list, sql: str) -> str:
+    def append_table_creation_sql(self, models: list, sql: str) -> str:
         for model in models:
             model.migrate()
             sql += model.query_creator.sql
@@ -40,10 +40,10 @@ class MigrationExecutor:
             unique_dict = {item[0]: (item[0], item[1], item[2], item[3]) for item in columns}
             unique_list = list(unique_dict.values())
             for _, _, model, db_columns in unique_list:
-                sql += self.db_backend.generate_alter_table_sql(model=model, db_columns=db_columns)
+                sql += self.db_backend.generate_alter_field_sql(model=model, db_columns=db_columns)
         else:
             for table_name, col, _, _ in columns:
-                sql += self.db_backend.generate_alter_table_sql(table_name=table_name, field=col)
+                sql += self.db_backend.generate_alter_field_sql(table_name=table_name, field=col)
         return sql
 
     def append_delete_cols_sql(self, columns: list, sql: str) -> str:

@@ -76,7 +76,7 @@ class PostgreSQLBackend(DataBaseBackend):
         where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql} RETURNING *"
 
-    def generate_table_schema(self, table_name: str, fields: BaseField):
+    def generate_create_table_sql(self, table_name: str, fields: BaseField):
         columns = []
         foreign_keys = []
 
@@ -92,7 +92,7 @@ class PostgreSQLBackend(DataBaseBackend):
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
 
-    def generate_alter_table_sql(self, table_name: str, field: BaseField, *args, **kwargs) -> str:
+    def generate_alter_field_sql(self, table_name: str, field: BaseField, *args, **kwargs) -> str:
         if isinstance(field, ForeignKey):
             field_sql = field.get_sql_line(self.get_foreign_key_constraint)
         else:
