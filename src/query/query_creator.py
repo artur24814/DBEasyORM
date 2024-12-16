@@ -1,9 +1,12 @@
 from .abstract import QueryCreatorABC
 from src.config import _get_active_backend
 from .exeptions import TheInstanceDoesNotExistExeption
+from .query_counter import QueryCounter
 
 
 class QueryCreator(QueryCreatorABC):
+    query_counter = QueryCounter()
+
     def __init__(self, model):
         super().__init__()
         self.backend = _get_active_backend()
@@ -19,6 +22,8 @@ class QueryCreator(QueryCreatorABC):
         self.return_id = False
 
     def execute(self) -> object:
+        self.query_counter.register_query(self.sql)
+
         cursor = self.backend.execute(query=self.sql, params=self.values)
         return cursor.lastrowid if self.return_id else \
             (self._fetch_all(cursor) if self.many else self._fetch_one(cursor))
