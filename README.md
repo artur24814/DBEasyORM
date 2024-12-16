@@ -33,35 +33,60 @@ pip install DBEasyORM[dev]
 
 1. Connect to the Database
 
-#### PostgreSQL Example:
+   ### 📄 Configuration File Recommendation
+   We recommend using a configuration file (e.g., `dbeasyorm.ini`) to streamline and centralize the setup of your database and application parameters. Below is an example of a `dbeasyorm.ini` file:
 
-For PostgreSQL, ensure that the PostgreSQL service is running and the database and user credentials are correct.
-You can initialize a PostgreSQL database by connecting to an existing database or creating 
-a new one using PostgreSQL’s command-line tools or a GUI like pgAdmin.
+    ```ini
+    [database]
+    db_type = sqlite
+    database_path = db.sqlite3
 
-```python
-from DBEasyORM import set_database_backend
+    [app]
+    dir = app
+    ```
+    `[database]`: This section is used to specify the database parameters:
 
-# set Postgres as database backend
-set_database_backend(
-    "postgresql",
-    host="localhost",
-    database="mydb",
-    user="myuser",
-    password="mypassword"
-)
-```
+    `db_type`: The type of database (e.g., sqlite, postgres).
+    `database_path`: The path to the SQLite database file or other database connection details (e.g., `host` and `port` for PostgreSQL).
 
-#### sqlite Example:
+    `[app]`: This section specifies the application settings:
 
-in the case of sqlite, if the database does not exist, it will be created automatically
+    `dir`: The folder where the models are stored. This is used for generating database migrations.
 
-```python
-from DBEasyORM import set_database_backend
 
-# set sqlite as database backend
-set_database_backend("sqlite", database_path="my_database.sqlite")
-```
+    By using a configuration file, you can simplify the process of managing database connections and app-specific settings, especially when working in different environments (e.g., development, testing, production).
+
+    ### Use function
+
+    #### PostgreSQL Example:
+
+    For PostgreSQL, ensure that the PostgreSQL service is running and the database and user credentials are correct.
+    You can initialize a PostgreSQL database by connecting to an existing database or creating 
+    a new one using PostgreSQL’s command-line tools or a GUI like pgAdmin.
+
+    ```python
+    from DBEasyORM import set_database_backend
+
+    # set Postgres as database backend
+    set_database_backend(
+        "postgresql",
+        host="localhost",
+        database="mydb",
+        user="myuser",
+        password="mypassword"
+    )
+    ```
+
+    #### sqlite Example:
+
+    in the case of sqlite, if the database does not exist, it will be created automatically
+
+    ```python
+    from DBEasyORM import set_database_backend
+
+    # set sqlite as database backend
+    set_database_backend("sqlite", database_path="my_database.sqlite")
+    ```
 
 2. Define Models
     ```python
@@ -76,7 +101,27 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
         salary = fields.FloatField(null=True)
     ```
 
-3. Perform CRUD Operations
+3. Migrations
+
+    Once you have defined your models, perform migrations:
+    ```bash
+    $ python migrations.py run
+    ```
+
+    all arguments:
+
+    ```bash
+    $ dbeasyorm update-database --help              
+    usage: cli.py update-database [-h] [-l LOOCKUP_FOLDER] [-i ID_MIGRATIONS] [-r] [-c CONFIG]
+
+    options:
+        -l LOOCKUP_FOLDER, --loockup-folder Path to the lookup folder
+        -i ID_MIGRATIONS, --id-migrations ID of specific migrations
+        -r, --restore   Restore database to the previous state
+        -c CONFIG, --config  Path to the config.ini file
+    ```
+
+4. Perform CRUD Operations
 
 * Create New Models
     #### Using save Method
@@ -253,23 +298,6 @@ set_database_backend("sqlite", database_path="my_database.sqlite")
     assert len(queryset_after_delete) == 0
     ```
 
-4. Migrations
-```bash
-$ python migrations.py run
-```
-
-all arguments:
-```bash
-$ dbeasyorm update-database --help              
-usage: cli.py update-database [-h] [-l LOOCKUP_FOLDER] [-i ID_MIGRATIONS] [-r] [-c CONFIG]
-
-options:
-  -l LOOCKUP_FOLDER, --loockup-folder Path to the lookup folder
-  -i ID_MIGRATIONS, --id-migrations ID of specific migrations
-  -r, --restore   Restore database to the previous state
-  -c CONFIG, --config  Path to the config.ini file
-```
-
 ## 🛠️ Customization
 
 #### Creating a Custom Database Engine
@@ -364,6 +392,65 @@ You can now use this custom field in your models like any other field:
 class Product(Model):
     discount = PercentageField()
 ```
+
+## ⚡ Optimization Goals
+To help developers optimize database interactions, DBEasyORM includes tools like the `QueryCounter` from the `QueryCreator` module. This tool tracks and logs database queries, making it easier to analyze and reduce redundant queries for better performance.
+
+Example Usage of `QueryCounter`:
+```python
+from src.query import QueryCreator
+from DBEasyORM.models.model import Model
+from DBEasyORM.DB_fields import fields
+
+class User(Model):
+    name = fields.TextField()
+    email = fields.TextField(unique=True)
+
+with QueryCreator.query_counter:
+    for 1 in range(10):
+        User(name=f"Test{i}", email=f"test{i}@examlpe.com").save().execute()
+
+    assert QueryCreator.query_counter.get_query_count() == 10
+
+with QueryCreator.query_counter:
+    for _ in range(10, 25):
+        User(name=f"Test{i}", email=f"test{i}@examlpe.com").save().execute()
+    assert QueryCreator.query_counter.get_query_count() == 15
+
+with QueryCreator.query_counter:
+    User.query_creator.all().execute()
+    assert QueryCreator.query_counter.get_query_count() == 1
+```
+
+#### Using QueryCounter as a Query Logger
+The `QueryCounter` can also be used as a logger to review database queries, their count, and execution time. This feature is particularly useful for optimizing query-heavy operations:
+
+```python
+from src.query import QueryCreator  
+
+with QueryCreator.query_counter:
+    # Perform database operations
+    for 1 in range(10):
+        User(name=f"Test{i}", email=f"test{i}@examlpe.com").save().execute()
+```
+terminal:
+```bash
+Query logging started. Previous logs cleared.
+Query logging ended. Total queries: 10
+Queries:
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+INSERT INTO USER (name, email) VALUES (?, ?)
+Elapsed time: 0.08 seconds.
+```
+By using `QueryCounter`, developers can identify unnecessary or repetitive queries and fine-tune their database interactions to achieve better performance.
 
 ## 🧪 Use DBEasyORM for Testing purpose with pytest
 To testesting with pytest, you can use fixtures to create temporary databases for testing purposes. Below is an example configuration that uses SQLite as the test database. This setup ensures that each test gets a fresh database to work with.
