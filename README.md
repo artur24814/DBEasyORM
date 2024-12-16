@@ -105,7 +105,7 @@ pip install DBEasyORM[dev]
 
     Once you have defined your models, perform migrations:
     ```bash
-    $ python migrations.py run
+    $ dbeasyorm update-database
     ```
 
     all arguments:
