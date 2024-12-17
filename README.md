@@ -394,6 +394,8 @@ class Product(Model):
 ```
 
 ## ⚡ Optimization Goals
+
+### ⚡ QueryCounter
 To help developers optimize database interactions, DBEasyORM includes tools like the `QueryCounter` from the `QueryCreator` module. This tool tracks and logs database queries, making it easier to analyze and reduce redundant queries for better performance.
 
 Example Usage of `QueryCounter`:
@@ -451,6 +453,96 @@ INSERT INTO USER (name, email) VALUES (?, ?)
 Elapsed time: 0.08 seconds.
 ```
 By using `QueryCounter`, developers can identify unnecessary or repetitive queries and fine-tune their database interactions to achieve better performance.
+
+### ⚡ Optimizing the N+1 Query Problem with join()
+The `N+1` Query Problem is a common issue that arises when querying related data in ORMs. It occurs when an initial query (N) retrieves a list of objects, and then an additional query is executed for each object to fetch its related data. This results in a significant increase in the number of database queries, leading to performance bottlenecks.
+
+For example:
+
+* Query 1 retrieves a list of posts.
+* Query N fetches the author or comments for each post individually.
+
+Using joins allows you to fetch related data in a single query, thereby reducing the number of queries and improving performance.
+
+#### Example: Resolving the N+1 Query Problem
+Define your models:
+
+```python
+from src.models.model import Model
+from src import fields
+
+class UserModel(Model):
+    name = fields.TextField()
+    second_name = fields.TextField()
+    email = fields.TextField(unique=True)
+
+class UsersPostModel(Model):
+    autor = fields.ForeignKey(related_model=UserModel, null=True)
+    content = fields.TextField(null=True)
+
+class UserComment(Model):
+    post = fields.ForeignKey(related_model=UsersPostModel, null=True)
+    autor = fields.ForeignKey(related_model=UserModel, null=True)
+```
+Perform migrations:
+
+```bash
+$ dbeasyorm update-database
+```
+Populate the database with test data:
+
+```python
+for _ in range(10):
+    UserModel(name=fake.name(), second_name=fake.last_name(), email=fake.email()).save().execute()
+user = UserModel.query_creator.all().execute()[5]
+UsersPostModel(autor=user, content=fake.text()).save().execute()
+post = UsersPostModel.query_creator.all().execute()[0]
+UserComment(autor=user, post=post).save().execute()
+```
+#### Fetching Data Without `join()`
+```python
+from src.query import QueryCreator
+
+with QueryCreator.query_counter:
+    usercomment = UserComment.query_creator.all().execute()[0]
+    assert usercomment.autor.name == user.name
+    assert usercomment.post.content == post.content
+    assert QueryCreator.query_counter.get_query_count() == 3  # 3 Queries
+```
+In this example:
+
+1. Query to fetch UserComment.
+2. Query to fetch the autor.
+3. Query to fetch the post.
+
+#### Optimized Query Using `join()`
+You can reduce the number of queries by pre-fetching related data using join():
+
+```python
+with QueryCreator.query_counter:
+    usercomment_with_join_autor = UserComment.query_creator.all().join("autor").execute()[0]
+    assert usercomment_with_join_autor.autor.name == user.name
+    assert usercomment_with_join_autor.post.content == post.content
+    assert QueryCreator.query_counter.get_query_count() == 2  # 2 Queries
+```
+Here:
+
+1. One query fetches UserComment and the related autor.
+2. Separate query for the `post` remains.
+
+#### Fully Optimized Query
+To fetch all related data in a single query, use multiple `join()` calls:
+
+```python
+with QueryCreator.query_counter:
+    usercomment_with_join_autor_and_post = UserComment.query_creator.all().join("autor").join("post").execute()[0]
+    assert usercomment_with_join_autor_and_post.autor.name == user.name
+    assert usercomment_with_join_autor_and_post.post.content == post.content
+    assert QueryCreator.query_counter.get_query_count() == 1  # 1 Query
+```
+In this case, only one query is executed to retrieve `UserComment` along with the related `autor` and `post`.
+
+By using `join()` effectively, you can resolve the N+1 Query Problem and drastically reduce the number of database queries. This improves performance and ensures your application scales efficiently, especially when dealing with large datasets or complex relationships.
 
 ## 🧪 Use DBEasyORM for Testing purpose with pytest
 To testesting with pytest, you can use fixtures to create temporary databases for testing purposes. Below is an example configuration that uses SQLite as the test database. This setup ensures that each test gets a fresh database to work with.
