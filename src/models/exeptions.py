@@ -10,7 +10,7 @@ class ThePrimaryKeyIsImmutable(Exception):
         return self.message
 
 
-class TheKeyIsNotAForeignEeyError(Exception):
+class TheKeyIsNotAForeignKeyError(Exception):
     def __init__(self, message="The key is not a foreign key", code=None):
         self.message = message
         self.code = code

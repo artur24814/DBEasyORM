@@ -1,11 +1,10 @@
-import re
-
 from .abstract import QueryCreatorABC
 from src.config import _get_active_backend
 from src.fields import ForeignKey
-from src.models.exeptions import TheKeyIsNotAForeignEeyError
+from src.models.exeptions import TheKeyIsNotAForeignKeyError
 from .exeptions import TheInstanceDoesNotExistExeption
 from .query_counter import QueryCounter
+from .utils import insert_pattern_into_str
 
 
 class QueryCreator(QueryCreatorABC):
@@ -44,26 +43,30 @@ class QueryCreator(QueryCreatorABC):
 
     def _map_row_to_object(self, row) -> object:
         column_names = [desc[0] for desc in self.backend.cursor.description]
+
         if not hasattr(self, "join_tables"):
             data = dict(zip(column_names, row))
             return self.model(**data)
 
+        return self._map_row_to_object_with_relations(column_names, row)
+
+    def _map_row_to_object_with_relations(self, column_names: list, row: list) -> object:
         base_model_data = {}
         related_model_data = {field: {} for field in self.join_tables.keys()}
+        table_prefix_map = {data["table"]: field_name for field_name, data in self.join_tables.items()}
 
         for column, value in zip(column_names, row):
-            for related_field_name, related_data in self.join_tables.items():
-                if column.startswith(related_data["table"]):
-                    field_name = column[len(related_data["table"]) + 1:]
-                    related_model_data[related_field_name][field_name] = value
-                    break
+            table_prefix = next((prefix for prefix in table_prefix_map if column.startswith(prefix)), None)
+
+            if table_prefix:
+                related_field_name = table_prefix_map[table_prefix]
+                field_name = column[len(table_prefix) + 1:]
+                related_model_data[related_field_name][field_name] = value
             else:
                 base_model_data[column] = value
 
-        for related_field_name, related_data in self.join_tables.items():
-            model_kwargs = related_model_data[related_field_name]
-            related_model = related_data["model"](**model_kwargs)
-            related_model_data[related_field_name] = related_model
+        for related_field_name, data in self.join_tables.items():
+            related_model_data[related_field_name] = data["model"](**related_model_data[related_field_name])
 
         base_model_data.update(related_model_data)
         delattr(self, 'join_tables')
@@ -125,24 +128,20 @@ class QueryCreator(QueryCreatorABC):
         related_field_name = f"id_{field_name}"
         field_instance = self.model._fields.get(related_field_name)
         if not isinstance(field_instance, ForeignKey):
-            raise TheKeyIsNotAForeignEeyError()
+            raise TheKeyIsNotAForeignKeyError()
 
         join_table_name = field_instance.related_model.query_creator.get_table_name()
-        on_condition = f"{self.get_table_name()}.{related_field_name} = {join_table_name}._id" if not on else on
-
-        pattern = r"(?i)(?=\bFROM\b)"
-        alias_join_table_columns = ', '.join([f"{join_table_name}.{col} AS {join_table_name}_{col}" for col in field_instance.related_model._fields.keys()])
-        replacement = f", {alias_join_table_columns} "
 
         if not hasattr(self, "join_tables"):
             self.join_tables = dict()
-
         self.join_tables[field_name] = {"table": join_table_name, "model": field_instance.related_model}
 
-        self.sql = re.sub(pattern, replacement, self.sql, count=1)
+        alias_join_table_columns = ', '.join([f"{join_table_name}.{col} AS {join_table_name}_{col}" for col in field_instance.related_model._fields.keys()])
+
+        self.sql = insert_pattern_into_str(r"(?i)(?=\bFROM\b)", f", {alias_join_table_columns} ", self.sql)
         self.sql += self.backend.generate_join_sql(
             join_table_name,
-            on=on_condition,
+            on=f"{self.get_table_name()}.{related_field_name} = {join_table_name}._id" if not on else on,
             join_type=join_type
         )
         return self

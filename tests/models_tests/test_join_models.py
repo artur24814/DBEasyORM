@@ -1,5 +1,8 @@
+import pytest
+
 from src.query import QueryCreator
 from src.migrations import MigrationExecutor
+from src.models.exeptions import TheKeyIsNotAForeignKeyError
 from faker import Faker
 
 fake = Faker()
@@ -22,11 +25,6 @@ def init_related_models():
         post = fields.ForeignKey(related_model=UsersPostModel, null=True)
         autor = fields.ForeignKey(related_model=UserModel, null=True)
 
-    return UserModel, UsersPostModel, UserComment
-
-
-def test_joining_midels_and_reduse_amount_of_queryes(testing_db):
-    UserModel, UsersPostModel, UserComment = init_related_models()
     migration_exec = MigrationExecutor(db_backend=UserModel.query_creator.backend)
 
     DETECTED_MIGRATIONS = {
@@ -36,6 +34,12 @@ def test_joining_midels_and_reduse_amount_of_queryes(testing_db):
         "remove_columns": []
     }
     migration_exec.execute_detected_migration(detected_migration=DETECTED_MIGRATIONS)
+
+    return UserModel, UsersPostModel, UserComment
+
+
+def test_joining_midels_and_reduse_amount_of_queryes(testing_db):
+    UserModel, UsersPostModel, UserComment = init_related_models()
 
     for _ in range(10):
         UserModel(name=fake.name(), second_name=fake.last_name(), email=fake.email()).save().execute()
@@ -61,3 +65,18 @@ def test_joining_midels_and_reduse_amount_of_queryes(testing_db):
         assert usercomment_with_join_autor_and_post.autor.name == user.name
         assert usercomment_with_join_autor_and_post.post.content == post.content
         assert QueryCreator.query_counter.get_query_count() == 1
+
+
+def test_ForeignKeyError_when_we_put_wrong_field(testing_db):
+    UserModel, UsersPostModel, UserComment = init_related_models()
+
+    for _ in range(10):
+        UserModel(name=fake.name(), second_name=fake.last_name(), email=fake.email()).save().execute()
+    user = UserModel.query_creator.all().execute()[5]
+    UsersPostModel(autor=user, content=fake.text()).save().execute()
+    post = UsersPostModel.query_creator.all().execute()[0]
+    UserComment(autor=user, post=post).save().execute()
+
+    with pytest.raises(TheKeyIsNotAForeignKeyError):
+        usercomment_with_join_fake_field = UserComment.query_creator.all().join("comment").execute()
+        assert len(usercomment_with_join_fake_field) == 0
