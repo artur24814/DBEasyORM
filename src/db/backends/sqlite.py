@@ -27,7 +27,7 @@ class SQLiteBackend(DataBaseBackend):
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
         return (
-            f"{field_name} INTEGER, "
+            f"{field_name} INTEGER ",
             f"FOREIGN KEY ({field_name}) REFERENCES {related_table} (_id) "
             f"ON DELETE {on_delete}"
         )
@@ -62,7 +62,10 @@ class SQLiteBackend(DataBaseBackend):
         if offset is not None:
             limit_offset_sql += f" OFFSET {offset}"
 
-        return f"SELECT {', '.join(columns) if columns else '*'} FROM {table_name}{where_sql}{limit_offset_sql}"
+        return f"SELECT {', '.join(columns) if columns else f'{table_name}.*'} FROM {table_name}{where_sql}{limit_offset_sql}"
+
+    def generate_join_sql(self, table_name: str, on: str, join_type: str) -> str:
+        return f" {join_type} JOIN {table_name} ON {on}"
 
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple):
         set_sql = ', '.join([f"{col}={self.get_placeholder()}" for col in set_clause])
@@ -79,9 +82,9 @@ class SQLiteBackend(DataBaseBackend):
 
         for field in fields:
             if isinstance(field, ForeignKey):
-                foreign_keys.append(
-                    field.get_sql_line(self.get_foreign_key_constraint)
-                )
+                column, foreign_key = field.get_sql_line(self.get_foreign_key_constraint)
+                columns.append(column)
+                foreign_keys.append(foreign_key)
             else:
                 columns.append(
                     field.get_sql_line(sql_type=self.get_sql_type(field.python_type))

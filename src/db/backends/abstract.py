@@ -36,6 +36,10 @@ class DataBaseBackend(ABC):
         ...
 
     @abstractmethod
+    def generate_join_sql(self, table_name: str, on: str, join_type: str) -> str:
+        ...
+
+    @abstractmethod
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple) -> str:
         ...
 

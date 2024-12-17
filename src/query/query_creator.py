@@ -1,7 +1,10 @@
 from .abstract import QueryCreatorABC
 from src.config import _get_active_backend
+from src.fields import ForeignKey
+from src.models.exeptions import TheKeyIsNotAForeignKeyError
 from .exeptions import TheInstanceDoesNotExistExeption
 from .query_counter import QueryCounter
+from .utils import insert_pattern_into_str
 
 
 class QueryCreator(QueryCreatorABC):
@@ -40,8 +43,34 @@ class QueryCreator(QueryCreatorABC):
 
     def _map_row_to_object(self, row) -> object:
         column_names = [desc[0] for desc in self.backend.cursor.description]
-        data = dict(zip(column_names, row))
-        return self.model(**data)
+
+        if not hasattr(self, "join_tables"):
+            data = dict(zip(column_names, row))
+            return self.model(**data)
+
+        return self._map_row_to_object_with_relations(column_names, row)
+
+    def _map_row_to_object_with_relations(self, column_names: list, row: list) -> object:
+        base_model_data = {}
+        related_model_data = {field: {} for field in self.join_tables.keys()}
+        table_prefix_map = {data["table"]: field_name for field_name, data in self.join_tables.items()}
+
+        for column, value in zip(column_names, row):
+            table_prefix = next((prefix for prefix in table_prefix_map if column.startswith(prefix)), None)
+
+            if table_prefix:
+                related_field_name = table_prefix_map[table_prefix]
+                field_name = column[len(table_prefix) + 1:]
+                related_model_data[related_field_name][field_name] = value
+            else:
+                base_model_data[column] = value
+
+        for related_field_name, data in self.join_tables.items():
+            related_model_data[related_field_name] = data["model"](**related_model_data[related_field_name])
+
+        base_model_data.update(related_model_data)
+        delattr(self, 'join_tables')
+        return self.model(**base_model_data)
 
     def get_table_name(self) -> str:
         return self.get_class_name().__name__.upper()
@@ -93,6 +122,28 @@ class QueryCreator(QueryCreatorABC):
             where_clause=kwargs
         )
         self.many = True
+        return self
+
+    def join(self, field_name: str, on: str = None, join_type: str = "INNER"):
+        related_field_name = f"id_{field_name}"
+        field_instance = self.model._fields.get(related_field_name)
+        if not isinstance(field_instance, ForeignKey):
+            raise TheKeyIsNotAForeignKeyError()
+
+        join_table_name = field_instance.related_model.query_creator.get_table_name()
+
+        if not hasattr(self, "join_tables"):
+            self.join_tables = dict()
+        self.join_tables[field_name] = {"table": join_table_name, "model": field_instance.related_model}
+
+        alias_join_table_columns = ', '.join([f"{join_table_name}.{col} AS {join_table_name}_{col}" for col in field_instance.related_model._fields.keys()])
+
+        self.sql = insert_pattern_into_str(r"(?i)(?=\bFROM\b)", f", {alias_join_table_columns} ", self.sql)
+        self.sql += self.backend.generate_join_sql(
+            join_table_name,
+            on=f"{self.get_table_name()}.{related_field_name} = {join_table_name}._id" if not on else on,
+            join_type=join_type
+        )
         return self
 
     def get_one(self, *args, **kwargs) -> QueryCreatorABC:

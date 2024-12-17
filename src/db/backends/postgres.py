@@ -67,6 +67,9 @@ class PostgreSQLBackend(DataBaseBackend):
 
         return f"SELECT {', '.join(columns) if columns else '*'} FROM {table_name}{where_sql}{limit_offset_sql}"
 
+    def generate_join_sql(self, table_name: str, on: str, join_type: str) -> str:
+        return f" {join_type} JOIN {table_name} ON {on}"
+
     def generate_update_sql(self, table_name: str, set_clause: tuple, where_clause: tuple):
         set_sql = ', '.join([f"{col} = {self.get_placeholder()}" for col in set_clause])
         where_sql = " AND ".join([f"{col} = {self.get_placeholder()}" for col in where_clause]) if where_clause else ""

@@ -26,7 +26,7 @@ def test_migration_query_with_foreign_key_sqlite(testing_db):
     PostTestModel.migrate()
 
     expected_sql = """CREATE TABLE IF NOT EXISTS POSTTESTMODEL (_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        is_read INTEGER, content TEXT, id_autor INTEGER, FOREIGN KEY (id_autor) REFERENCES CUSTOMETESTMODEL (_id) ON DELETE CASCADE);"""
+        is_read INTEGER, id_autor INTEGER , content TEXT, FOREIGN KEY (id_autor) REFERENCES CUSTOMETESTMODEL (_id) ON DELETE CASCADE);"""
 
     normalized_actual = " ".join(PostTestModel.query_creator.sql.split())
     normalized_expected = " ".join(expected_sql.split())
