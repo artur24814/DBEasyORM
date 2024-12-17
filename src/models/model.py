@@ -12,37 +12,7 @@ class ModelMeta(type):
         for attr_name, attr_value in list(attrs.items()):
             if isinstance(attr_value, BaseField):
                 if isinstance(attr_value, ForeignKey):
-                    fk_field_name = f"id_{attr_name}"
-                    model_attr_object = f"{attr_name}_object"
-
-                    attr_value.field_name = fk_field_name
-                    fields[fk_field_name] = attr_value
-                    attrs[fk_field_name] = None
-                    attrs[model_attr_object] = None
-
-                    def getter(self, attr_name=attr_name, related_model=attr_value.related_model):
-                        model_attr_object = f"{attr_name}_object"
-                        if getattr(self, model_attr_object, None) is None:
-                            fk_value = getattr(self, f"id_{attr_name}", None)
-                            if fk_value is not None:
-                                setattr(
-                                    self,
-                                    model_attr_object,
-                                    related_model.query_creator.get_one(_id=fk_value).execute()
-                                )
-                        return getattr(self, model_attr_object, None)
-
-                    def setter(self, value, attr_name=attr_name, related_model=attr_value.related_model):
-                        if value is None:
-                            return None
-
-                        if not isinstance(value, related_model):
-                            raise TypeError(f"Expected instance of {related_model.__name__}, got {type(value).__name__}")
-                        setattr(self, f"id_{attr_name}", value.id)
-                        setattr(self, f"{attr_name}_object", value)
-
-                    attrs[attr_name] = property(getter, setter)
-
+                    attrs, fields = cls._set_property_for_foreign_key_field(attr_name, attr_value, attrs, fields, cls)
                 else:
                     fields[attr_name] = attr_value
                     attr_value.field_name = attr_name
@@ -51,6 +21,48 @@ class ModelMeta(type):
         new_cls = super().__new__(cls, name, bases, attrs)
         new_cls.query_creator = QueryCreator(new_cls)
         return new_cls
+
+    @staticmethod
+    def _set_property_for_foreign_key_field(attr_name: str, attr_value: ForeignKey, attrs: dict, fields: dict, cls: object) -> tuple:
+        attrs, fields = cls._append_addional_fields_for_manage_relations(attr_name, attr_value, attrs, fields, cls)
+
+        def getter(self, attr_name=attr_name, related_model=attr_value.related_model):
+            id_field_name, model_object_field = cls._generate_additional_fields_for_relations(attr_name)
+            if getattr(self, model_object_field, None) is None:
+                id_value = getattr(self, id_field_name, None)
+                if id_value is not None:
+                    setattr(self, model_object_field, related_model.query_creator.get_one(_id=id_value).execute())
+            return getattr(self, model_object_field, None)
+
+        def setter(self, value, attr_name=attr_name, related_model=attr_value.related_model):
+            if value is None:
+                return None
+
+            if not isinstance(value, related_model):
+                raise TypeError(f"Expected instance of {related_model.__name__}, got {type(value).__name__}")
+            id_field_name, model_object_field = cls._generate_additional_fields_for_relations(attr_name)
+            setattr(self, id_field_name, value.id)
+            setattr(self, model_object_field, value)
+
+        attrs[attr_name] = property(getter, setter)
+        return attrs, fields
+
+    @staticmethod
+    def _append_addional_fields_for_manage_relations(attr_name: str, attr_value: ForeignKey, attrs: dict, fields: dict, cls: object) -> tuple:
+        id_field_name, model_object_field = cls._generate_additional_fields_for_relations(attr_name)
+
+        attr_value.field_name = id_field_name
+        fields[id_field_name] = attr_value
+        attrs[id_field_name] = None
+        attrs[model_object_field] = None
+
+        return attrs, fields
+
+    @staticmethod
+    def _generate_additional_fields_for_relations(attr_name: str) -> tuple:
+        id_field_name = f"id_{attr_name}"
+        model_object_field = f"{attr_name}_object"
+        return id_field_name, model_object_field
 
 
 class Model(ModelABC, metaclass=ModelMeta):
