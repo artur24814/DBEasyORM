@@ -13,17 +13,17 @@ class ModelMeta(type):
             if isinstance(attr_value, BaseField):
                 if isinstance(attr_value, ForeignKey):
                     fk_field_name = f"id_{attr_name}"
+                    model_attr_object = f"{attr_name}_object"
 
                     attr_value.field_name = fk_field_name
                     fields[fk_field_name] = attr_value
                     attrs[fk_field_name] = None
-
-                    model_attr_object = f"{attr_name}_object"
                     attrs[model_attr_object] = None
 
-                    def getter(self, fk_field=fk_field_name, related_model=attr_value.related_model):
+                    def getter(self, attr_name=attr_name, related_model=attr_value.related_model):
+                        model_attr_object = f"{attr_name}_object"
                         if getattr(self, model_attr_object, None) is None:
-                            fk_value = getattr(self, fk_field, None)
+                            fk_value = getattr(self, f"id_{attr_name}", None)
                             if fk_value is not None:
                                 setattr(
                                     self,
@@ -32,14 +32,14 @@ class ModelMeta(type):
                                 )
                         return getattr(self, model_attr_object, None)
 
-                    def setter(self, value, fk_field=fk_field_name, related_model=attr_value.related_model):
+                    def setter(self, value, attr_name=attr_name, related_model=attr_value.related_model):
                         if value is None:
                             return None
 
                         if not isinstance(value, related_model):
                             raise TypeError(f"Expected instance of {related_model.__name__}, got {type(value).__name__}")
-                        setattr(self, fk_field, value.id)
-                        setattr(self, model_attr_object, value)
+                        setattr(self, f"id_{attr_name}", value.id)
+                        setattr(self, f"{attr_name}_object", value)
 
                     attrs[attr_name] = property(getter, setter)
 

@@ -13,7 +13,7 @@ def test_foreign_key_sql_line_creating_for_sqlite(sqlite_backend):
     FOREIGN_KEY.field_name = "user_id"
     assert FOREIGN_KEY.get_sql_line(
         db_backend_constrain_gen=sqlite_backend.get_foreign_key_constraint
-    ) == "user_id INTEGER, FOREIGN KEY (user_id) REFERENCES CUSTOMETESTMODEL (_id) ON DELETE CASCADE"
+    ) == ('user_id INTEGER ', 'FOREIGN KEY (user_id) REFERENCES CUSTOMETESTMODEL (_id) ON DELETE CASCADE')
 
 
 def test_foreign_key_sql_line_creating_for_postgres(postgres_backend):
