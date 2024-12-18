@@ -1,13 +1,13 @@
 from faker import Faker
 import random
 
-from src import fields
+from dbeasyorm import fields
 
 fake = Faker()
 
 
 def init_custome_test_model():
-    from src.models.model import Model
+    from dbeasyorm.models.model import Model
 
     class CustomeTestModel(Model):
         name = fields.TextField()
@@ -26,7 +26,7 @@ def get_custome_test_model():
 
 
 def init_post_test_model_related_to(related_model):
-    from src.models.model import Model
+    from dbeasyorm.models.model import Model
 
     class PostTestModel(Model):
         is_read = fields.BooleanField(null=True)

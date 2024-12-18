@@ -1,5 +1,5 @@
 from tests.models_tests.CustomeTestModel import get_custome_test_model, create_custome_test_model
-from src.query import QueryCreator
+from dbeasyorm.query import QueryCreator
 
 
 def test_query_counter_isolation(testing_db):

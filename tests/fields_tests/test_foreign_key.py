@@ -1,5 +1,5 @@
 import pytest
-from src import fields
+from dbeasyorm import fields
 from tests.models_tests.CustomeTestModel import get_custome_test_model
 
 

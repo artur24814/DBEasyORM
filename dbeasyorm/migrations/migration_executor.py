@@ -1,5 +1,5 @@
 from colorama import Fore
-from src.db.backends import DataBaseBackend, SQLiteBackend
+from dbeasyorm.db.backends import DataBaseBackend, SQLiteBackend
 
 from .messages import print_success, print_info, print_line
 

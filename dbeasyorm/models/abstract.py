@@ -1,4 +1,4 @@
-from src.query.query_creator import QueryCreatorABC
+from dbeasyorm.query.query_creator import QueryCreatorABC
 
 
 class ModelABC:

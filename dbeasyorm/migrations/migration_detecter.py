@@ -1,5 +1,5 @@
-from src.db.backends import DataBaseBackend
-from src.models.model import Model
+from dbeasyorm.db.backends import DataBaseBackend
+from dbeasyorm.models.model import Model
 
 
 class MigrationDetecter:

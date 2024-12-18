@@ -1,5 +1,5 @@
 import pytest
-from src import fields
+from dbeasyorm import fields
 
 
 BYTE_FIELD = fields.ByteField(field_name="image_bite", unique=True)

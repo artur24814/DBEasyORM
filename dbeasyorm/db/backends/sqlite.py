@@ -1,6 +1,6 @@
 import sqlite3
 from .abstract import DataBaseBackend
-from src.fields import BaseField, ForeignKey
+from dbeasyorm.fields import BaseField, ForeignKey
 
 
 class SQLiteBackend(DataBaseBackend):

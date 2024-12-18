@@ -1,5 +1,5 @@
 import pytest
-from src import fields
+from dbeasyorm import fields
 
 
 FLOAT_FIELD = fields.FloatField(field_name="price", unique=True)

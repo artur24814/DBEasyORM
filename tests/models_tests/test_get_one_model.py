@@ -1,7 +1,7 @@
 import pytest
 
 from .CustomeTestModel import get_custome_test_model, create_custome_test_model
-from src.query import TheInstanceDoesNotExistExeption
+from dbeasyorm.query import TheInstanceDoesNotExistExeption
 
 
 def test_get_one_model(testing_db):

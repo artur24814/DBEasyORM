@@ -1,5 +1,5 @@
 import pytest
-from src import fields
+from dbeasyorm import fields
 
 
 INTEGER_FIELD = fields.IntegerField(field_name="age", null=True, unique=True, primary=True, min=0, max=10)
