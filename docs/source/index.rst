@@ -15,6 +15,7 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
    
+   usage
    dbeasyorm.commands
    dbeasyorm.db
    dbeasyorm.fields
