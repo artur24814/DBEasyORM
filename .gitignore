@@ -165,7 +165,3 @@ test_project.py
 
 app/
 
-*rst
-
-!index.rst
-!usage.rst
