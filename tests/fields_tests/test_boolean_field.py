@@ -1,5 +1,5 @@
 import pytest
-from src import fields
+from dbeasyorm import fields
 
 
 BOOLEAN_FIELD = fields.BooleanField(field_name="is_active", unique=True)

@@ -15,9 +15,9 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
    
-   src.commands
-   src.db
-   src.fields
-   src.migrations
-   src.models
-   src.query
+   dbeasyorm.commands
+   dbeasyorm.db
+   dbeasyorm.fields
+   dbeasyorm.migrations
+   dbeasyorm.models
+   dbeasyorm.query

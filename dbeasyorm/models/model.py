@@ -1,5 +1,5 @@
-from src.fields import IntegerField, BaseField, ForeignKey
-from src.query.query_creator import QueryCreator
+from dbeasyorm.fields import IntegerField, BaseField, ForeignKey
+from dbeasyorm.query.query_creator import QueryCreator
 
 from .abstract import ModelABC
 from .exeptions import ThePrimaryKeyIsImmutable

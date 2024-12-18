@@ -1,5 +1,5 @@
 from colorama import Fore
-from src.config import _get_active_backend
+from dbeasyorm.config import _get_active_backend
 
 from .migration_detecter import MigrationDetecter
 from .migration_executor import MigrationExecutor

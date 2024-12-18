@@ -1,4 +1,4 @@
-from src.commands import CommandManager, UpdateDatabaseCommand
+from dbeasyorm.commands import CommandManager, UpdateDatabaseCommand
 
 
 def main():

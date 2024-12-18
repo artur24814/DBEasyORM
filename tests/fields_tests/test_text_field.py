@@ -1,5 +1,5 @@
 import pytest
-from src import fields
+from dbeasyorm import fields
 
 
 TEXT_FIELD = fields.TextField(field_name="email", null=True, unique=True, primary=True)

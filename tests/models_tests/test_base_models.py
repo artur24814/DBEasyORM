@@ -1,7 +1,7 @@
 import pytest
 
-from src.query import QueryCreator
-from src.models.exeptions import ThePrimaryKeyIsImmutable
+from dbeasyorm.query import QueryCreator
+from dbeasyorm.models.exeptions import ThePrimaryKeyIsImmutable
 
 
 def test_correcting_creating_fileds_when_models_init(testing_db, custome_model):

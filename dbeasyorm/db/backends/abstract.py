@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from src.fields import BaseField
+from dbeasyorm.fields import BaseField
 
 
 class DataBaseBackend(ABC):

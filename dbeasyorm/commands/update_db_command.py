@@ -1,9 +1,9 @@
 import argparse
 import os
 
-from src.migrations import MigrationHandler
+from dbeasyorm.migrations import MigrationHandler
 from .abstraction import BaseCommand
-from src.config import _get_folders_for_migration_search
+from dbeasyorm.config import _get_folders_for_migration_search
 
 
 class UpdateDatabaseCommand(BaseCommand):

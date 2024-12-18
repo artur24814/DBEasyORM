@@ -12,9 +12,9 @@ def test_execute_few_columns_to_add_detected(testing_db):
     CustomeTestModel = init_custome_test_model()
     CustomeTestModel.migrate().backend.execute(query=CustomeTestModel.query_creator.sql)
 
-    from src.migrations import MigrationExecutor
-    from src import fields
-    from src.models.model import Model
+    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm import fields
+    from dbeasyorm.models.model import Model
 
     # 1. Delete this fields from model
     class CustomeTestModel(Model):

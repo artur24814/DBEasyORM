@@ -1,9 +1,9 @@
 import pytest
 import tempfile
 
-from src import fields, set_database_backend
+from dbeasyorm import fields, set_database_backend
 
-from src.db.backends import SQLiteBackend, PostgreSQLBackend
+from dbeasyorm.db.backends import SQLiteBackend, PostgreSQLBackend
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def postgres_backend():
 
 @pytest.fixture
 def custome_model():
-    from src.models.model import Model
+    from dbeasyorm.models.model import Model
 
     class CustomeModel(Model):
         name = fields.TextField(null=True)

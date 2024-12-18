@@ -1,16 +1,16 @@
 import pytest
 
-from src.query import QueryCreator
-from src.migrations import MigrationExecutor
-from src.models.exeptions import TheKeyIsNotAForeignKeyError
+from dbeasyorm.query import QueryCreator
+from dbeasyorm.migrations import MigrationExecutor
+from dbeasyorm.models.exeptions import TheKeyIsNotAForeignKeyError
 from faker import Faker
 
 fake = Faker()
 
 
 def init_related_models():
-    from src.models.model import Model
-    from src import fields
+    from dbeasyorm.models.model import Model
+    from dbeasyorm import fields
 
     class UserModel(Model):
         name = fields.TextField()
