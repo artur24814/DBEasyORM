@@ -164,3 +164,7 @@ cython_debug/
 test_project.py
 
 app/
+
+*rst
+
+!index.rst
