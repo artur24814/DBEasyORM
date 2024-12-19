@@ -1,0 +1,16 @@
+include README.md
+include LICENSE
+
+exclude db.sqlite3
+exclude .flake8
+exclude .gitignore
+exclude .readthedocs.yaml
+exclude dbeasyorm.ini
+exclude make.bat
+exclude Makefile
+exclude requirements.txt
+
+recursive-exclude docs *
+recursive-exclude tests *
+recursive-exclude .github *
+recursive-exclude env *
