@@ -1,6 +1,7 @@
 import psycopg2
 from .abstract import DataBaseBackend
 from dbeasyorm.fields import BaseField, ForeignKey
+from dbeasyorm.operators import apply_sql_operator
 
 
 class PostgreSQLBackend(DataBaseBackend):
@@ -57,7 +58,7 @@ class PostgreSQLBackend(DataBaseBackend):
     def generate_select_sql(self, table_name: str, columns: tuple, where_clause: dict = None, limit: int = None, offset: int = None) -> str:
         where_sql = ""
         if where_clause:
-            where_sql = " WHERE " + " AND ".join([f"{col} = " + self.get_sql_val_repr(val) for col, val in where_clause.items()])
+            where_sql = " WHERE " + " AND ".join([apply_sql_operator(col, val) for col, val in where_clause.items()])
 
         limit_offset_sql = ""
         if limit is not None:

@@ -66,6 +66,3 @@ class DataBaseBackend(ABC):
     @abstractmethod
     def get_database_schemas(self) -> dict:
         ...
-
-    def get_sql_val_repr(self, value):
-        return f"'{value}'" if isinstance(value, str) else ("NULL" if value is None else f"{value}")
