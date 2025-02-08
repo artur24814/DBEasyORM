@@ -1,10 +1,14 @@
 from .default_operator import DefaultSQLOperator
 from .in_operator import InSQLOperator
+from .startswith_operator import StartsWithSQLOperator
+from .endswith_operator import EndsWithSQLOperator
 
 
 _registered_operators = {
     DefaultSQLOperator.operator_name: DefaultSQLOperator,
-    InSQLOperator.operator_name: InSQLOperator
+    InSQLOperator.operator_name: InSQLOperator,
+    StartsWithSQLOperator.operator_name: StartsWithSQLOperator,
+    EndsWithSQLOperator.operator_name: EndsWithSQLOperator
 }
 
 

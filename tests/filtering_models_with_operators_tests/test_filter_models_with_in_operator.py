@@ -1,7 +1,7 @@
 from ..models_tests.CustomeTestModel import get_custome_test_model, create_custome_test_model
 
 
-def test_filtering_models_with_in_perator(testing_db):
+def test_filtering_models_with_in_operator(testing_db):
     CustomeTestModel = get_custome_test_model()
     test_names = [f"Test{i}" for i in range(10)]
 
