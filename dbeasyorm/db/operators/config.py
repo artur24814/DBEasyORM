@@ -1,8 +1,10 @@
-from .default import DefaultSQLOperator
+from .default_operator import DefaultSQLOperator
+from .in_operator import InSQLOperator
 
 
 _registered_operators = {
-    "default": DefaultSQLOperator,
+    DefaultSQLOperator.operator_name: DefaultSQLOperator,
+    InSQLOperator.operator_name: InSQLOperator
 }
 
 

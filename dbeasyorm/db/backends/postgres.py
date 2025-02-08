@@ -1,7 +1,7 @@
 import psycopg2
 from .abstract import DataBaseBackend
 from dbeasyorm.fields import BaseField, ForeignKey
-from dbeasyorm.operators import apply_sql_operator
+from dbeasyorm.db.operators import apply_sql_operator
 
 
 class PostgreSQLBackend(DataBaseBackend):

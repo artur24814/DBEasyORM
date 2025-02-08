@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class OperatorSQLABC(ABC):
+    operator_name = None
+
     @abstractmethod
     def apply(self, col, value) -> str:
         ...

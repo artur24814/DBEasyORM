@@ -1,4 +1,4 @@
-from dbeasyorm.operators import apply_sql_operator
+from dbeasyorm.db.operators import apply_sql_operator
 
 
 def test_correcting_default_operator():
