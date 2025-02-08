@@ -2,13 +2,15 @@ from .default_operator import DefaultSQLOperator
 from .in_operator import InSQLOperator
 from .startswith_operator import StartsWithSQLOperator
 from .endswith_operator import EndsWithSQLOperator
+from .between_operator import BetweenSQLOperator
 
 
 _registered_operators = {
     DefaultSQLOperator.operator_name: DefaultSQLOperator,
     InSQLOperator.operator_name: InSQLOperator,
     StartsWithSQLOperator.operator_name: StartsWithSQLOperator,
-    EndsWithSQLOperator.operator_name: EndsWithSQLOperator
+    EndsWithSQLOperator.operator_name: EndsWithSQLOperator,
+    BetweenSQLOperator.operator_name: BetweenSQLOperator,
 }
 
 
