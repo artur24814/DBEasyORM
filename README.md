@@ -17,18 +17,18 @@ With built-in support for model definitions, queries, migrations, and transactio
 * Relationships: Define and query one-to-many and many-to-many relationships.
 * Custom Validation: Add custom field-level validation to enforce business rules.
 
-<!-- ## 📦 Installation
+## 📦 Installation
 You can install DBEasyORM via pip:
 
 ```bash
-pip install DbEasyORM
+pip install dbeasyorm
 ```
 
 Or install development dependencies. Use the following commands:
 
 ```bash
-pip install DBEasyORM[dev]
-``` -->
+pip install dbeasyorm[dev]
+```
 ## 🔧 Usage
 
 1. Connect to the Database
@@ -298,12 +298,87 @@ pip install DBEasyORM[dev]
     assert len(queryset_after_delete) == 0
     ```
 
+5. **Operators for Query Filtering**
+
+    This library provides various SQL operators for filtering data.
+    ## Available Operators: 
+
+    ### Between :
+    Filters values within a given range.
+
+    ```python
+    from your_module import CustomeTestModel
+
+    # Create test records
+    for i in range(10):
+        CustomeTestModel(name=f"User{i}", age=14 + i, salary=1000.0 + i * 10).save().execute()
+
+    # Filtering using BetweenSQLOperator
+    query = CustomeTestModel.query_creator.filter(age__between=(18, 60))
+    print(query.sql)  # Output: SELECT CUSTOMETESTMODEL.* FROM CUSTOMETESTMODEL WHERE age BETWEEN 18 AND 60
+    result = query.execute()
+    assert len(result) == 6
+    ```
+
+    ### In
+    Filters values that exist in a given list.
+
+    ```python
+    from your_module import CustomeTestModel
+
+    # Create test records
+    names = ["Alice", "Bob", "Charlie", "David", "Eve"]
+    for name in names:
+        CustomeTestModel(name=name).save().execute()
+
+    # Filtering using InSQLOperator
+    query = CustomeTestModel.query_creator.filter(name__in=["Alice", "Charlie", "Eve"])
+    print(query.sql)  # Output: SELECT CUSTOMETESTMODEL.* FROM CUSTOMETESTMODEL WHERE name IN ('Alice', 'Charlie', 'Eve')
+    result = query.execute()
+    assert len(result) == 3
+    ```
+
+    ### StartsWith
+    Filters values that start with a specific substring.
+
+    ```python
+    from your_module import CustomeTestModel
+
+    # Create test records
+    names = ["Jon", "Tom", "Jonathan", "James", "Bill"]
+    for name in names:
+        CustomeTestModel(name=name).save().execute()
+
+    # Filtering using StartsWithSQLOperator
+    query = CustomeTestModel.query_creator.filter(name__startswith="Jo")
+    print(query.sql)  # Output: SELECT CUSTOMETESTMODEL.* FROM CUSTOMETESTMODEL WHERE name LIKE 'Jo%'
+    result = query.execute()
+    assert len(result) == 2
+    ```
+    ### EndsWith
+    Filters values that end with a specific substring.
+
+    ```python
+    from your_module import CustomeTestModel
+
+    # Create test records
+    names = ["Jon", "Tom", "Jonathan", "James", "Bill"]
+    for name in names:
+        CustomeTestModel(name=name).save().execute()
+
+    # Filtering using EndsWithSQLOperator
+    query = CustomeTestModel.query_creator.filter(name__endswith="n")
+    print(query.sql)  # Output: SELECT CUSTOMETESTMODEL.* FROM CUSTOMETESTMODEL WHERE name LIKE '%n'
+    result = query.execute()
+    assert len(result) == 2
+    ```
+
 ## 🛠️ Customization
 
-#### Creating a Custom Database Engine
+### Creating a Custom Database Engine
 If DBEasyORM doesn't support your database or you need special functionality, you can easily create a custom database engine. To do this, subclass the DataBaseBackend class and implement the necessary methods.
 
-Example: Custom Database Engine
+**Example: Custom Database Engine**
 
 1. Create custome backend
 ```python
@@ -366,9 +441,10 @@ register_backend("custom", CustomDatabaseBackend)
 set_database_backend("custom", custom_param="value")
 ```
 
+### Creating Custome fields
 DBEasyORM allows developers to define custom fields to meet specific requirements. Here's an example of how to create a custom field:
 
-Example: Custom Field Creation
+**Example: Custom Field Creation**
 ```python
 from DBEasyORM.DB_fields.abstract import BaseField
 
@@ -391,6 +467,36 @@ You can now use this custom field in your models like any other field:
 ```python
 class Product(Model):
     discount = PercentageField()
+```
+
+### Creating a Custom Operator
+You can extend the operator functionality by creating your own custom SQL operator.
+
+**Example: Creating a Custom AdminPrefixSQLOperator**
+```python
+from .abstract import OperatorSQLABC
+
+class AdminPrefixSQLOperator(OperatorSQLABC):
+    operator_name = "admin_prefix"
+
+    def apply(self, col=None, value=None, *args, **kwargs) -> str:
+        return f"{col} LIKE 'admin_%'"
+
+```
+Registering the Custom Operator
+```python
+from your_module.operator_registry import register_operator
+from your_module.custom_operators import AdminPrefixSQLOperator
+
+register_operator("admin_prefix", AdminPrefixSQLOperator)
+```
+Using the Custom Operator
+```python
+query = CustomeTestModel.query_creator.filter(username__admin_prefix=True)
+print(query.sql)  
+# Output: SELECT CUSTOMETESTMODEL.* FROM CUSTOMETESTMODEL WHERE username LIKE 'admin_%'
+
+result = query.execute()
 ```
 
 ## ⚡ Optimization Goals
