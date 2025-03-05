@@ -12,7 +12,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
     CustomeTestModel = init_custome_test_model()
     CustomeTestModel.migrate().backend.execute(query=CustomeTestModel.query_creator.sql)
 
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
     from dbeasyorm import fields
     from dbeasyorm.models.model import Model
 

@@ -12,7 +12,7 @@ fake = Faker()
 def test_execute_query_one_table_to_create_detected(testing_db):
     CustomeTestModel = init_custome_test_model()
     CustomeTestModel.query_creator.backend.connect()
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
@@ -38,7 +38,7 @@ def test_execute_query_few_relateds_to_create_detected(testing_db):
     CustomeTestModel = init_custome_test_model()
     CustomeTestModel.query_creator.backend.connect()
     PostTestModel = init_post_test_model_related_to(CustomeTestModel)
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 

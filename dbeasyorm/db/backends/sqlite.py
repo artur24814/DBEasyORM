@@ -93,25 +93,26 @@ class SQLiteBackend(DataBaseBackend):
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
 
-    def generate_alter_field_sql(self, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
-        table_name = model.query_creator.get_table_name()
+    def generate_alter_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
         sql_result = ''
-        db_columns = ", ".join(db_columns.keys())
+        db_columns_names = ", ".join(db_columns.keys())
+        fields_names = ", ".join([field.field_name for field in fields])
+        fields_names_to_copy = ", ".join([db_columns_names + (", NULL" * (len(fields) - len(db_columns)))])
 
         # sql_create_new_table_query
-        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", list(model._fields.values()))
-        sql_result += f"""INSERT INTO {table_name}_NEW ({db_columns}) SELECT {db_columns} FROM {table_name};"""
+        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", fields)
+        sql_result += f"""\nINSERT INTO {table_name}_NEW ({fields_names})\nSELECT {fields_names_to_copy} FROM {table_name};\n"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
-        sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
+        sql_result += f"\nALTER TABLE {table_name}_NEW RENAME TO {table_name};"
+        print(sql_result)
         return sql_result
 
-    def generate_drop_field_sql(self, model: BaseField, *args, **kwargs) -> str:
-        table_name = model.query_creator.get_table_name()
+    def generate_drop_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
         sql_result = ''
-        columns = ", ".join(model._fields.keys())
+        columns = ", ".join([field.field_name for field in fields])
 
         # sql_create_new_table_query
-        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", list(model._fields.values()))
+        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", fields)
         sql_result += f"""INSERT INTO {table_name}_NEW ({columns}) SELECT {columns} FROM {table_name};"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
         sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"

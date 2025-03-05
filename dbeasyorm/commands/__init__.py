@@ -1,10 +1,12 @@
 from .abstraction import BaseCommand
-from .update_db_command import UpdateDatabaseCommand
+from .apply_migrations_command import ApplyMigrationsCommand
+from .generate_migration_command import GenerateMigrationCommand
 from .command_manager import CommandManager
 
 
 __all__ = [
     'CommandManager',
-    'UpdateDatabaseCommand',
+    'ApplyMigrationsCommand',
+    'GenerateMigrationCommand',
     'BaseCommand'
 ]

@@ -77,6 +77,9 @@ class Model(ModelABC, metaclass=ModelMeta):
                 setattr(self, field_name, value)
         self._id = kwargs.get('_id', -1)
 
+    def __str__(self):
+        return self.__class__.__name__
+
     @property
     def id(self) -> int:
         return self._id

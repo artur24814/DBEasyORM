@@ -32,7 +32,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
     with pytest.raises(AttributeError):
         assert created_model.bio == FAKE_BIO
 
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
     from dbeasyorm import fields
     from dbeasyorm.models.model import Model
 
@@ -95,7 +95,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
 def test_execute_few_columns_to_add_with_foreigth_key_detected(testing_db):
     from dbeasyorm import fields
     from dbeasyorm.models.model import Model
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 
     CustomeTestModel = init_custome_test_model()
     CustomeTestModel.query_creator.backend.connect()

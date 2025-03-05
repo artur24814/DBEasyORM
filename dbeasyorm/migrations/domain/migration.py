@@ -11,9 +11,9 @@ class Migration(ABC):
         fields_repr = ",\n        ".join(f"'{key}': {repr(value)}" for key, value in self.fields.items())
 
         return f"""{self.__class__.__name__}(
-    table_name="{self.table_name}",
-    fields={{\n        {fields_repr} \n    }}
-)"""
+        table_name="{self.table_name}",
+        fields={{\n        {fields_repr} \n    }}
+    )"""
 
     @abstractmethod
     def generate_sql(self, backend: DataBaseBackend, *args, **kwargs) -> str:

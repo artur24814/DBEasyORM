@@ -1,7 +1,7 @@
 import pytest
 
 from dbeasyorm.query import QueryCreator
-from dbeasyorm.migrations import MigrationExecutor
+from dbeasyorm.migrations import MigrationProcessor
 from dbeasyorm.models.exeptions import TheKeyIsNotAForeignKeyError
 from faker import Faker
 
@@ -25,7 +25,7 @@ def init_related_models():
         post = fields.ForeignKey(related_model=UsersPostModel, null=True)
         autor = fields.ForeignKey(related_model=UserModel, null=True)
 
-    migration_exec = MigrationExecutor(db_backend=UserModel.query_creator.backend)
+    migration_exec = MigrationProcessor(db_backend=UserModel.query_creator.backend)
 
     DETECTED_MIGRATIONS = {
         "create_tables": [UserModel, UsersPostModel, UserComment],

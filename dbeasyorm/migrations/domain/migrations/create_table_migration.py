@@ -1,9 +1,9 @@
 from dbeasyorm.db.backends import DataBaseBackend
-from ..abstract import Migration
+from ..migration import Migration
 
 
 class CreateTableMigration(Migration):
-    
+
     def generate_sql(self, backend: DataBaseBackend, *args, **kwargs) -> str:
         sql = backend.generate_create_table_sql(
             table_name=self.table_name,

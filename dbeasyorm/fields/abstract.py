@@ -21,7 +21,16 @@ class BaseField(metaclass=BaseFieldMeta):
         self.value = self.default if self.default else None
 
     def __repr__(self):
-        return f"<Field field_name={self.field_name} {self.__class__.__name__}>"
+        attrs = [attr for attr in self.__dict__.keys() if attr != "python_type" and attr != "value"]
+        parts = []
+        for name in attrs:
+            value = getattr(self, name, None)
+            parts.append(f"{name}={self.get_value_repr(value)!r}")
+        return f"{self.__class__.__name__}({', '.join(parts)})"
+
+    def get_value_repr(self, value) -> str:
+        from dbeasyorm.models.model import Model
+        return value.query_creator.get_table_name() if isinstance(value, type) and issubclass(value, Model) else value
 
     def get_sql_line(self, *args, **kwargs) -> str:
         sql_line = self.get_basic_sql_line(**kwargs)
