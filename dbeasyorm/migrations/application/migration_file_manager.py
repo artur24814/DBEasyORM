@@ -20,7 +20,7 @@ class MigrationFileManager:
         print_line(Fore.GREEN, '=')
         models = self.models_loader.load_models(loockup_folder)
         detected_migration = self.migration_detec.get_detected_migrations(models)
-        if any(detected_migration.values()):
+        if any(detected_migration):
             mig_path = self.migration_creator.create_migration_file("create_users_table", detected_migration)
             print_success(f"✅ New migration created: {mig_path}")
         else:

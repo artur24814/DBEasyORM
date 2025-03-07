@@ -6,7 +6,6 @@ from dbeasyorm.migrations.domain.migrations import (
     AddColumnsMigration,
     RemoveColumnsMigration
 )
-from ..consts import BLANC_DICT_MIGRATION
 
 
 class MigrationDetecter:
@@ -22,7 +21,7 @@ class MigrationDetecter:
         return self.db_backend.get_database_schemas()
 
     def compare_schemas(self, models, db_schemas):
-        migrations = BLANC_DICT_MIGRATION.copy()
+        migrations = list()
 
         for model in models:
             model_table_name = model.query_creator.get_table_name()
@@ -31,7 +30,7 @@ class MigrationDetecter:
                     table_name=model_table_name,
                     fields=model._fields,
                 )
-                migrations["create_tables"].append(migration)
+                migrations.append(migration)
                 continue
 
             migrations = self.compare_cols_in_existing_tables(model_table_name, model, db_schemas, migrations)
@@ -42,7 +41,7 @@ class MigrationDetecter:
                 migration = DropTableMigration(
                     table_name=table_name
                 )
-                migrations["drop_tables"].append(migration)
+                migrations.append(migration)
 
         return migrations
 
@@ -59,7 +58,7 @@ class MigrationDetecter:
                     fields=model._fields,
                     db_columns=db_columns,
                 )
-                migrations["add_columns"].append(migration)
+                migrations.append(migration)
                 break
 
         for column_name in db_columns.keys():
@@ -69,7 +68,7 @@ class MigrationDetecter:
                     fields=model._fields,
                     db_columns=db_columns,
                 )
-                migrations["remove_columns"].append(migration)
+                migrations.append(migration)
                 break
 
         return migrations

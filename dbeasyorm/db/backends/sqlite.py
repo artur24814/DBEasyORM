@@ -104,7 +104,6 @@ class SQLiteBackend(DataBaseBackend):
         sql_result += f"""\nINSERT INTO {table_name}_NEW ({fields_names})\nSELECT {fields_names_to_copy} FROM {table_name};\n"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
         sql_result += f"\nALTER TABLE {table_name}_NEW RENAME TO {table_name};"
-        print(sql_result)
         return sql_result
 
     def generate_drop_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
