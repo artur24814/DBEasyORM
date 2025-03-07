@@ -4,6 +4,7 @@ import random
 from tests.models_tests.CustomeTestModel import (
     init_custome_test_model, init_post_test_model_related_to
 )
+from dbeasyorm.migrations import CreateTableMigration
 
 
 fake = Faker()
@@ -15,14 +16,13 @@ def test_execute_query_one_table_to_create_detected(testing_db):
     from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
-
-    DETECTED_MIGRATIONS = {
-        "create_tables": [CustomeTestModel],
-        "add_columns": [],
-        "drop_tables": [],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=DETECTED_MIGRATIONS)
+    detected_migration = [
+        CreateTableMigration(
+            table_name=CustomeTestModel.query_creator.get_table_name(),
+            fields=CustomeTestModel._fields,
+        )
+    ]
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # now we can insert fist model
     assert CustomeTestModel(
@@ -42,13 +42,18 @@ def test_execute_query_few_relateds_to_create_detected(testing_db):
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
-    DETECTED_MIGRATIONS = {
-        "create_tables": [CustomeTestModel, PostTestModel],
-        "add_columns": [],
-        "drop_tables": [],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=DETECTED_MIGRATIONS)
+    detected_migration = [
+        CreateTableMigration(
+            table_name=CustomeTestModel.query_creator.get_table_name(),
+            fields=CustomeTestModel._fields,
+        ),
+        CreateTableMigration(
+            table_name=PostTestModel.query_creator.get_table_name(),
+            fields=PostTestModel._fields,
+        )
+    ]
+
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # now we can insert fist models
     assert CustomeTestModel(

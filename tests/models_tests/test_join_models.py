@@ -1,8 +1,9 @@
 import pytest
 
 from dbeasyorm.query import QueryCreator
-from dbeasyorm.migrations import MigrationProcessor
+from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 from dbeasyorm.models.exeptions import TheKeyIsNotAForeignKeyError
+from dbeasyorm.migrations import CreateTableMigration
 from faker import Faker
 
 fake = Faker()
@@ -25,15 +26,24 @@ def init_related_models():
         post = fields.ForeignKey(related_model=UsersPostModel, null=True)
         autor = fields.ForeignKey(related_model=UserModel, null=True)
 
-    migration_exec = MigrationProcessor(db_backend=UserModel.query_creator.backend)
+    migration_exec = MigrationExecutor(db_backend=UserModel.query_creator.backend)
 
-    DETECTED_MIGRATIONS = {
-        "create_tables": [UserModel, UsersPostModel, UserComment],
-        "add_columns": [],
-        "drop_tables": [],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=DETECTED_MIGRATIONS)
+    detected_migration = [
+        CreateTableMigration(
+            table_name=UserModel.query_creator.get_table_name(),
+            fields=UserModel._fields,
+        ),
+        CreateTableMigration(
+            table_name=UsersPostModel.query_creator.get_table_name(),
+            fields=UsersPostModel._fields,
+        ),
+        CreateTableMigration(
+            table_name=UserComment.query_creator.get_table_name(),
+            fields=UserComment._fields,
+        )
+    ]
+
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     return UserModel, UsersPostModel, UserComment
 

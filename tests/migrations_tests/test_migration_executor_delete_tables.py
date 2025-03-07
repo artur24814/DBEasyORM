@@ -6,6 +6,7 @@ from sqlite3 import OperationalError
 from tests.models_tests.CustomeTestModel import (
     init_custome_test_model, init_post_test_model_related_to
 )
+from dbeasyorm.migrations import DropTableMigration, CreateTableMigration
 
 
 fake = Faker()
@@ -19,13 +20,18 @@ def test_execute_query_tables_to_delete_detected(testing_db):
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
     # migarte this tables
-    DETECTED_MIGRATIONS = {
-        "create_tables": [CustomeTestModel, PostTestModel],
-        "add_columns": [],
-        "drop_tables": [],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=DETECTED_MIGRATIONS)
+    detected_migration = [
+        CreateTableMigration(
+            table_name=CustomeTestModel.query_creator.get_table_name(),
+            fields=CustomeTestModel._fields,
+        ),
+        CreateTableMigration(
+            table_name=PostTestModel.query_creator.get_table_name(),
+            fields=PostTestModel._fields,
+        )
+    ]
+
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # test we actualy can access this models
     assert CustomeTestModel(
@@ -36,13 +42,18 @@ def test_execute_query_tables_to_delete_detected(testing_db):
         salary=round(random.uniform(5.000, 15.000), 3)
     ).save().execute() == 1
 
-    DETECTED_DELETED_MIGRATIONS = {
-        "create_tables": [],
-        "add_columns": [],
-        "drop_tables": [CustomeTestModel.query_creator.get_table_name(), PostTestModel.query_creator.get_table_name()],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=DETECTED_DELETED_MIGRATIONS)
+    detected_migration = [
+        DropTableMigration(
+            table_name=CustomeTestModel.query_creator.get_table_name(),
+            fields=CustomeTestModel._fields,
+        ),
+        DropTableMigration(
+            table_name=PostTestModel.query_creator.get_table_name(),
+            fields=PostTestModel._fields,
+        )
+    ]
+
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # Now we should have error
     with pytest.raises(OperationalError):

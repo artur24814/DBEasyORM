@@ -1,4 +1,5 @@
 from tests.models_tests.CustomeTestModel import init_custome_test_model, init_post_test_model_related_to
+from dbeasyorm.migrations import AddColumnsMigration, DropTableMigration, RemoveColumnsMigration, CreateTableMigration
 
 
 def test_one_table_to_create_detected(testing_db):
@@ -11,11 +12,9 @@ def test_one_table_to_create_detected(testing_db):
     migration_detecter = MigrationDetecter(CustomeTestModel.query_creator.backend)
     detected_migrations = migration_detecter.get_detected_migrations([PostTestModel, CustomeTestModel])
 
-    assert len(detected_migrations.get('create_tables')) == 1
-    assert detected_migrations.get('create_tables')[0].table_name == 'POSTTESTMODEL'
-    assert detected_migrations.get('drop_tables') == []
-    assert detected_migrations.get('add_columns') == []
-    assert detected_migrations.get('remove_columns') == []
+    assert len(detected_migrations) == 1
+    assert detected_migrations[0].table_name == 'POSTTESTMODEL'
+    assert isinstance(detected_migrations[0], CreateTableMigration)
 
 
 def test_one_table_to_drop_detected(testing_db):
@@ -29,10 +28,9 @@ def test_one_table_to_drop_detected(testing_db):
     migration_detecter = MigrationDetecter(CustomeTestModel.query_creator.backend)
     detected_migrations = migration_detecter.get_detected_migrations([CustomeTestModel])
 
-    assert detected_migrations.get('drop_tables')[0].table_name == 'POSTTESTMODEL'
-    assert detected_migrations.get('create_tables') == []
-    assert detected_migrations.get('add_columns') == []
-    assert detected_migrations.get('remove_columns') == []
+    assert detected_migrations[0].table_name == 'POSTTESTMODEL'
+    assert isinstance(detected_migrations[0], DropTableMigration)
+    assert len(detected_migrations) == 1
 
 
 def test_one_column_to_add_detected(testing_db):
@@ -54,14 +52,13 @@ def test_one_column_to_add_detected(testing_db):
 
     from dbeasyorm.migrations.services.migration_detecter import MigrationDetecter
     migration_detecter = MigrationDetecter(CustomeTestModel.query_creator.backend)
-    detected_migrations = migration_detecter.get_detected_migrations([CustomeTestModel, PostTestModel])
+    detected_migrations = migration_detecter.get_detected_migrations([PostTestModel, CustomeTestModel])
 
-    assert detected_migrations.get('create_tables') == []
-    assert detected_migrations.get('drop_tables') == []
-    assert len(detected_migrations.get('add_columns')) == 1
-    assert detected_migrations.get('add_columns')[0].table_name == 'POSTTESTMODEL'
-    assert len(detected_migrations.get('add_columns')[0].fields) == 4
-    assert detected_migrations.get('remove_columns') == []
+    assert len(detected_migrations) == 1
+    assert isinstance(detected_migrations[0], AddColumnsMigration)
+    assert detected_migrations[0].table_name == 'POSTTESTMODEL'
+    assert len(detected_migrations[0].fields) == 5
+    assert len(detected_migrations[0].db_columns) == 4
 
 
 def test_one_column_to_delete_detected(testing_db):
@@ -83,9 +80,8 @@ def test_one_column_to_delete_detected(testing_db):
     migration_detecter = MigrationDetecter(CustomeTestModel.query_creator.backend)
     detected_migrations = migration_detecter.get_detected_migrations([CustomeTestModel, PostTestModel])
 
-    assert detected_migrations.get('create_tables') == []
-    assert detected_migrations.get('drop_tables') == []
-    assert detected_migrations.get('add_columns') == []
-    assert len(detected_migrations.get('remove_columns')) == 1
-    assert detected_migrations.get('remove_columns')[0][0] == 'POSTTESTMODEL'
-    assert detected_migrations.get('remove_columns')[0][1] == 'id_autor'
+    assert len(detected_migrations) == 1
+    assert isinstance(detected_migrations[0], RemoveColumnsMigration)
+    assert detected_migrations[0].table_name == 'POSTTESTMODEL'
+    assert len(detected_migrations[0].fields) == 3
+    assert len(detected_migrations[0].db_columns) == 4
