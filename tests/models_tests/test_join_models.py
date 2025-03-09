@@ -28,19 +28,23 @@ def init_related_models():
 
     migration_exec = MigrationExecutor(db_backend=UserModel.query_creator.backend)
 
-    detected_migration = [
-        CreateTableMigration(
-            table_name=UserModel.query_creator.get_table_name(),
-            fields=UserModel._fields,
-        ),
-        CreateTableMigration(
-            table_name=UsersPostModel.query_creator.get_table_name(),
-            fields=UsersPostModel._fields,
-        ),
-        CreateTableMigration(
-            table_name=UserComment.query_creator.get_table_name(),
-            fields=UserComment._fields,
-        )
+    detected_migration = [{
+        "001":
+            [
+                CreateTableMigration(
+                    table_name=UserModel.query_creator.get_table_name(),
+                    fields=UserModel._fields,
+                ),
+                CreateTableMigration(
+                    table_name=UsersPostModel.query_creator.get_table_name(),
+                    fields=UsersPostModel._fields,
+                ),
+                CreateTableMigration(
+                    table_name=UserComment.query_creator.get_table_name(),
+                    fields=UserComment._fields,
+                )
+            ]
+        }
     ]
 
     migration_exec.execute_detected_migration(detected_migration=detected_migration)

@@ -1,61 +1,41 @@
-import os
-import datetime
 import subprocess
 
+from dbeasyorm.migrations.infrastructure.migration_repository import MigrationRepository
+
+from ..utils.file_handling import create_file_if_not_exists, create_file
 from .migration_file_dir import MigrationFileDir
 from .file_templates.migration_file_template import render_migration_file
+from .file_templates.init_migration_file_template import render_init_migration_file
 
 
 class MigrationFileGenerator(MigrationFileDir):
     def __init__(self, config_file='dbeasyorm.ini'):
         super().__init__(config_file)
-        self.migrations_dir = self._ensure_migrations_directory(os.path.join(self.app_dir, "migrations"))
+        self._ensure_migration_model_in_db()
+        self._ensure_first_migration_file_exists(self.migrations_dir)
 
-    def _ensure_migrations_directory(self, migrations_dir: str) -> None:
-        if not os.path.exists(migrations_dir):
-            os.makedirs(migrations_dir)
-            print(f"Directory was created: {migrations_dir}")
+    def _ensure_migration_model_in_db(self) -> None:
+        MigrationRepository.ensure_migration_model()
 
-        self._create_init_file_if_not_exists(migrations_dir)
-        return migrations_dir
-
-    def _create_init_file_if_not_exists(self, migrations_dir: str) -> None:
-        init_file = os.path.join(migrations_dir, "__init__.py")
-        if not os.path.exists(init_file):
-            with open(init_file, "w") as f:
-                f.write("")
+    def _ensure_first_migration_file_exists(self, migration_dir: str) -> None:
+        init_migration_script = render_init_migration_file(MigrationRepository.get_model())
+        filepath = create_file_if_not_exists(migration_dir, "000_init_migration.py", init_migration_script)
+        self._apply_formatting_into_file(filepath)
 
     def create_migration_file(self, name, migrations: dict) -> str:
-        formatted_mig = self._get_fomatted_migrations(migrations)
-        filepath = self._write_migration_file(name, formatted_mig)
+        filepath = create_file(
+            dir=self.migrations_dir,
+            file_name=self._get_file_name(name),
+            content=render_migration_file(migration_name=name, migrations=migrations)
+        )
         self._apply_formatting_into_file(filepath)
 
         return filepath
 
-    def _get_fomatted_migrations(self, migrations: list) -> str:
-        def format_value(value):
-            if isinstance(value, str):
-                return f'"{value}"'
-            elif isinstance(value, list):
-                return "[" + ", ".join(format_value(v) for v in value) + "]"
-            elif isinstance(value, dict):
-                return "{\n        " + ",\n        ".join(f"{format_value(k)}: {format_value(v)}" for k, v in value.items()) + "\n    }"
-            elif hasattr(value, '__repr__'):
-                return repr(value)
-            return str(value)
-
-        return "[\n    " + ",\n    ".join(f"{format_value(migration)}" for migration in migrations) + "\n]"
-
-    def _write_migration_file(self, name: str, migrations: str) -> str:
-        filepath = self._get_file_path(name)
-        with open(filepath, "w") as f:
-            f.write(render_migration_file(migration_name=name, migrations=migrations))
-        return filepath
-
-    def _get_file_path(self, name: str) -> str:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"{timestamp}_{name}.py"
-        return os.path.join(self.migrations_dir, filename)
+    def _get_file_name(self, name: str) -> str:
+        next_name = MigrationRepository.get_next_name()
+        filename = f"{next_name}_{name}.py"
+        return filename
 
     def _apply_formatting_into_file(self, filepath: str) -> None:
         subprocess.run(["black", filepath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

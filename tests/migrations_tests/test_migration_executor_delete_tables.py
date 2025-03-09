@@ -19,16 +19,20 @@ def test_execute_query_tables_to_delete_detected(testing_db):
     from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
-    # migarte this tables
-    detected_migration = [
-        CreateTableMigration(
-            table_name=CustomeTestModel.query_creator.get_table_name(),
-            fields=CustomeTestModel._fields,
-        ),
-        CreateTableMigration(
-            table_name=PostTestModel.query_creator.get_table_name(),
-            fields=PostTestModel._fields,
-        )
+    # migrate this tables
+    detected_migration = [{
+        "001":
+            [
+                CreateTableMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                ),
+                CreateTableMigration(
+                    table_name=PostTestModel.query_creator.get_table_name(),
+                    fields=PostTestModel._fields,
+                )
+            ]
+        }
     ]
 
     migration_exec.execute_detected_migration(detected_migration=detected_migration)
@@ -43,14 +47,19 @@ def test_execute_query_tables_to_delete_detected(testing_db):
     ).save().execute() == 1
 
     detected_migration = [
-        DropTableMigration(
-            table_name=CustomeTestModel.query_creator.get_table_name(),
-            fields=CustomeTestModel._fields,
-        ),
-        DropTableMigration(
-            table_name=PostTestModel.query_creator.get_table_name(),
-            fields=PostTestModel._fields,
-        )
+        {
+            "001":
+            [
+                DropTableMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                ),
+                DropTableMigration(
+                    table_name=PostTestModel.query_creator.get_table_name(),
+                    fields=PostTestModel._fields,
+                )
+            ]
+        }
     ]
 
     migration_exec.execute_detected_migration(detected_migration=detected_migration)

@@ -27,19 +27,19 @@ def test_execute_few_columns_to_add_detected(testing_db):
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
-    # Add these fields to your creation fields
-    # NOTE: If we are going to use sqlite, we only really need only the model
-    # because we will create a new one based on this model.
-    # But the interface requires passing all fields to be created for compatibility with other backends
     db_schemas = migration_exec.db_backend.get_database_schemas()
-    detected_migrations = [
-        RemoveColumnsMigration(
-            table_name=CustomeTestModel.query_creator.get_table_name(),
-            fields=CustomeTestModel._fields,
-            db_columns=db_schemas[CustomeTestModel.query_creator.get_table_name()],
-        )
+    detected_migration = [{
+        "001":
+            [
+                RemoveColumnsMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                    db_columns=db_schemas[CustomeTestModel.query_creator.get_table_name()],
+                )
+            ]
+        }
     ]
-    migration_exec.execute_detected_migration(detected_migration=detected_migrations)
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # now we can insert model and try to get deleted fileds
     assert CustomeTestModel(

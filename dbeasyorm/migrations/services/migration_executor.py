@@ -1,7 +1,8 @@
 from colorama import Fore
 from dbeasyorm.db.backends import DataBaseBackend
+from dbeasyorm.migrations.infrastructure.migration_repository import MigrationRepository
 
-from ..cli.messages import print_success, print_info, print_line
+from ..application.cli.messages import print_success, print_info, print_line
 
 
 class MigrationExecutor:
@@ -13,13 +14,19 @@ class MigrationExecutor:
         print_line(Fore.BLUE, '-')
         print_info(f"Detected ({len(detected_migration)}) migrations to execute")
         print_line(Fore.BLUE, '-')
-
-        self.sql = self._append_sql_migration(detected_migration, self.sql)
-
-        self.db_backend.execute(query=self.sql)
+        self._apply_migrations(detected_migration)
         print_success("All database migrations applied")
 
-    def _append_sql_migration(self, migrations: list, sql: str) -> str:
+    def _apply_migrations(self, detected_migration: list):
+        for migrations_dict in detected_migration:
+            for name, migrations in migrations_dict.items():
+                sql = self._append_sql_migration(migrations)
+                self.db_backend.execute(query=sql)
+                MigrationRepository.save_migration(name=name)
+                print_success(f"✅ Migration {name} applied!")
+
+    def _append_sql_migration(self, migrations: list) -> str:
+        sql = ""
         for migration in migrations:
             sql += migration.generate_sql(self.db_backend)
         return sql

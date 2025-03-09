@@ -17,10 +17,15 @@ def test_execute_query_one_table_to_create_detected(testing_db):
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
     detected_migration = [
-        CreateTableMigration(
-            table_name=CustomeTestModel.query_creator.get_table_name(),
-            fields=CustomeTestModel._fields,
-        )
+        {
+            "001":
+            [
+                CreateTableMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                )
+            ]
+        }
     ]
     migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
@@ -43,14 +48,19 @@ def test_execute_query_few_relateds_to_create_detected(testing_db):
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
     detected_migration = [
-        CreateTableMigration(
-            table_name=CustomeTestModel.query_creator.get_table_name(),
-            fields=CustomeTestModel._fields,
-        ),
-        CreateTableMigration(
-            table_name=PostTestModel.query_creator.get_table_name(),
-            fields=PostTestModel._fields,
-        )
+        {
+            "001":
+            [
+                CreateTableMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                ),
+                CreateTableMigration(
+                    table_name=PostTestModel.query_creator.get_table_name(),
+                    fields=PostTestModel._fields,
+                )
+            ]
+        }
     ]
 
     migration_exec.execute_detected_migration(detected_migration=detected_migration)

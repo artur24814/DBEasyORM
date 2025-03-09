@@ -3,7 +3,7 @@ from dbeasyorm.config import _get_active_backend
 
 from ..services.migration_detecter import MigrationDetecter
 from ..services.migration_executor import MigrationExecutor
-from ..cli.messages import print_success, print_line
+from ..application.cli.messages import print_success, print_line
 from ..utils.model_classes_loader import ModelClassesLoader
 from ..services.migration_file_generator import MigrationFileGenerator
 

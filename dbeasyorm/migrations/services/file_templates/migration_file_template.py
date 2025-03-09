@@ -1,9 +1,9 @@
 import datetime
 
 
-def render_migration_file(migration_name: str, migrations: dict):
+def render_migration_file(migration_name: str, migrations: list):
     return f'''"""
-Migrtion: {migration_name}
+Migration: {migration_name}
 Created: {datetime.datetime.now()}
 """
 from dbeasyorm.migrations import *
