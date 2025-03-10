@@ -16,7 +16,7 @@ class MigrationDetecter:
     def get_detected_migrations(self, models: list, formatted=False) -> list:
         db_schemas = self._get_database_schemas()
         migrations = self._compare_schemas(models, db_schemas)
-        return migrations if not formatted else [{MigrationRepository.get_next_name(): migrations}]
+        return [] if not migrations else migrations if not formatted else [{MigrationRepository.get_next_name(): migrations}]
 
     def _get_database_schemas(self) -> dict:
         self.db_backend.connect()

@@ -12,7 +12,7 @@ class MigrationFileManager:
     def __init__(self, config_file_path: str = None):
         self.db_backend = _get_active_backend(config_file_path) if config_file_path else _get_active_backend()
         self.migration_detec = MigrationDetecter(self.db_backend)
-        self.migration_creator = MigrationFileGenerator()
+        self.migration_creator = MigrationFileGenerator(db_backend=self.db_backend)
         self.migration_exec = MigrationExecutor(self.db_backend)
         self.models_loader = ModelClassesLoader()
 
@@ -21,7 +21,8 @@ class MigrationFileManager:
         models = self.models_loader.load_models(loockup_folder)
         detected_migration = self.migration_detec.get_detected_migrations(models)
         if any(detected_migration):
-            mig_path = self.migration_creator.create_migration_file("create_users_table", detected_migration)
+            mig_hash = ''.join([migration.get_hash() for migration in detected_migration])
+            mig_path = self.migration_creator.create_migration_file(mig_hash, detected_migration)
             print_success(f"✅ New migration created: {mig_path}")
         else:
             print_success("Everything is up to date")

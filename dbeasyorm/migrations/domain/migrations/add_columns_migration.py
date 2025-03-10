@@ -23,3 +23,6 @@ class AddColumnsMigration(Migration):
             fields=list(self.fields.values()),
             db_columns=self.db_columns
         )
+
+    def get_hash(self) -> str:
+        return f"add_columns_to_{self.table_name}_"

@@ -18,7 +18,7 @@ def test_execute_query_one_table_to_create_detected(testing_db):
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
     detected_migration = [
         {
-            "001":
+            "011":
             [
                 CreateTableMigration(
                     table_name=CustomeTestModel.query_creator.get_table_name(),
@@ -49,7 +49,7 @@ def test_execute_query_few_relateds_to_create_detected(testing_db):
 
     detected_migration = [
         {
-            "001":
+            "011":
             [
                 CreateTableMigration(
                     table_name=CustomeTestModel.query_creator.get_table_name(),

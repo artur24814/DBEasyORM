@@ -21,7 +21,7 @@ def test_execute_query_tables_to_delete_detected(testing_db):
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
     # migrate this tables
     detected_migration = [{
-        "001":
+        "011":
             [
                 CreateTableMigration(
                     table_name=CustomeTestModel.query_creator.get_table_name(),
@@ -48,7 +48,7 @@ def test_execute_query_tables_to_delete_detected(testing_db):
 
     detected_migration = [
         {
-            "001":
+            "011":
             [
                 DropTableMigration(
                     table_name=CustomeTestModel.query_creator.get_table_name(),

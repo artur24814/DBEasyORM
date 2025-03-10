@@ -18,3 +18,7 @@ class Migration(ABC):
     @abstractmethod
     def generate_sql(self, backend: DataBaseBackend, *args, **kwargs) -> str:
         pass
+
+    @abstractmethod
+    def get_hash(self) -> str:
+        pass

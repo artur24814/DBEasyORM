@@ -52,7 +52,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
     db_schemas = migration_exec.db_backend.get_database_schemas()
     detected_migration = [
         {
-            "001":
+            "011":
             [
                 AddColumnsMigration(
                     table_name=CustomeTestModel.query_creator.get_table_name(),
@@ -99,7 +99,7 @@ def test_execute_few_columns_to_add_with_foreigth_key_detected(testing_db):
 
     db_schemas = migration_exec.db_backend.get_database_schemas()
     detected_migration = [{
-        "001":
+        "011":
             [
                 CreateTableMigration(
                     table_name=Profile.query_creator.get_table_name(),

@@ -8,3 +8,6 @@ class DropTableMigration(Migration):
 
     def generate_sql(self, backend: DataBaseBackend, *args, **kwargs) -> str:
         return backend.generate_drop_table_sql(table_name=self.table_name)
+
+    def get_hash(self) -> str:
+        return f"drop_table_{self.table_name}_"

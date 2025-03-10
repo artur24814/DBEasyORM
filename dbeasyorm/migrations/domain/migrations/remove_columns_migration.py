@@ -23,3 +23,6 @@ class RemoveColumnsMigration(Migration):
             fields=list(self.fields.values()),
             db_columns=self.db_columns
         )
+
+    def get_hash(self) -> str:
+        return f"remove_columns_from_{self.table_name}_"

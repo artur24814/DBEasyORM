@@ -10,3 +10,6 @@ class CreateTableMigration(Migration):
             fields=list(self.fields.values())
         )
         return sql + " \n"
+
+    def get_hash(self) -> str:
+        return f"create_table_{self.table_name}_"

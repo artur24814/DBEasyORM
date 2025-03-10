@@ -29,7 +29,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
 
     db_schemas = migration_exec.db_backend.get_database_schemas()
     detected_migration = [{
-        "001":
+        "011":
             [
                 RemoveColumnsMigration(
                     table_name=CustomeTestModel.query_creator.get_table_name(),
