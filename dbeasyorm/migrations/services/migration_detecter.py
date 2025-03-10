@@ -12,11 +12,12 @@ from dbeasyorm.migrations.infrastructure.migration_repository import MigrationRe
 class MigrationDetecter:
     def __init__(self, db_backend: DataBaseBackend):
         self.db_backend = db_backend
+        self.migration_repo = MigrationRepository(db_backend=self.db_backend)
 
     def get_detected_migrations(self, models: list, formatted=False) -> list:
         db_schemas = self._get_database_schemas()
         migrations = self._compare_schemas(models, db_schemas)
-        return [] if not migrations else migrations if not formatted else [{MigrationRepository.get_next_name(): migrations}]
+        return [] if not migrations else migrations if not formatted else [{self.migration_repo.get_next_name(): migrations}]
 
     def _get_database_schemas(self) -> dict:
         self.db_backend.connect()
@@ -75,7 +76,7 @@ class MigrationDetecter:
 
         for table_name in db_schemas.keys():
             if self._is_tables_exists_in_db_but_not_in_models(table_name, model_table_names):
-                if table_name != MigrationRepository.get_table_name():
+                if table_name != self.migration_repo.get_table_name():
                     migration = DropTableMigration(
                         table_name=table_name
                     )

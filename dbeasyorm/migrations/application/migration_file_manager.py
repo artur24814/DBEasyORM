@@ -2,7 +2,6 @@ from colorama import Fore
 from dbeasyorm.config import _get_active_backend
 
 from ..services.migration_detecter import MigrationDetecter
-from ..services.migration_executor import MigrationExecutor
 from ..application.cli.messages import print_success, print_line
 from ..utils.model_classes_loader import ModelClassesLoader
 from ..services.migration_file_generator import MigrationFileGenerator
@@ -13,7 +12,6 @@ class MigrationFileManager:
         self.db_backend = _get_active_backend(config_file_path) if config_file_path else _get_active_backend()
         self.migration_detec = MigrationDetecter(self.db_backend)
         self.migration_creator = MigrationFileGenerator(db_backend=self.db_backend)
-        self.migration_exec = MigrationExecutor(self.db_backend)
         self.models_loader = ModelClassesLoader()
 
     def create_files(self, loockup_folder: str, *args, **kwargs) -> None:

@@ -5,10 +5,14 @@ from dbeasyorm.migrations.infrastructure.migration_repository import MigrationRe
 
 
 class MigrationFileReader(MigrationFileDir):
+    def __init__(self, config_file='dbeasyorm.ini', db_backend=None):
+        super().__init__(config_file=config_file)
+        self.db_backend = db_backend
+        self.migration_repo = MigrationRepository(db_backend=self.db_backend)
 
     def read_migrations(self) -> dict:
         migration_files = sorted(os.listdir(self.migrations_dir))
-        applied_migrations_names = MigrationRepository.get_applied_migrations()
+        applied_migrations_names = self.migration_repo.get_applied_migrations()
         migrations_to_apply = list()
 
         for filename in migration_files:
@@ -30,4 +34,5 @@ class MigrationFileReader(MigrationFileDir):
                 if hasattr(module, "get_migrations"):
                     migrations = module.get_migrations()
                     migrations_to_apply.append({migration_name: migrations})
+
         return migrations_to_apply

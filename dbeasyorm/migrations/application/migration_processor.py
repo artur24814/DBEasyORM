@@ -12,7 +12,7 @@ class MigrationProcessor:
     def __init__(self, config_file_path: str = None):
         self.db_backend = _get_active_backend(config_file_path) if config_file_path else _get_active_backend()
         self.migration_detec = MigrationDetecter(self.db_backend)
-        self.migration_file_reader = MigrationFileReader()
+        self.migration_file_reader = MigrationFileReader(db_backend=self.db_backend)
         self.migration_exec = MigrationExecutor(self.db_backend)
         self.models_loader = ModelClassesLoader()
 

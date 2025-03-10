@@ -8,7 +8,8 @@ from ..application.cli.messages import print_success, print_info, print_line
 class MigrationExecutor:
     def __init__(self, db_backend: DataBaseBackend):
         self.db_backend = db_backend
-        MigrationRepository.ensure_migration_model(self.db_backend)
+        self.migration_repo = MigrationRepository(db_backend=self.db_backend)
+        self.migration_repo.ensure_migration_model()
         self.sql = ""
 
     def execute_detected_migration(self, detected_migration: dict) -> None:
@@ -23,9 +24,7 @@ class MigrationExecutor:
             for name, migrations in migrations_dict.items():
                 sql = self._append_sql_migration(migrations)
                 migration_hash = self._append_migration_hash(migrations)
-                self.db_backend.execute(query=sql)
-                query = MigrationRepository.save_migration(name=name, hash=migration_hash)
-                self.db_backend.execute(query=query.sql, params=query.values)
+                self._apply_one_migration(sql=sql, name=name, migration_hash=migration_hash)
                 print_success(f"✅ Migration {name} applied!")
 
     def _append_sql_migration(self, migrations: list) -> str:
@@ -33,3 +32,7 @@ class MigrationExecutor:
 
     def _append_migration_hash(self, migrations: list) -> str:
         return ''.join([migration.get_hash() for migration in migrations])
+
+    def _apply_one_migration(self, name: str, sql: str, migration_hash: str) -> None:
+        self.db_backend.execute(query=sql)
+        self.migration_repo.save_migration(name=name, hash=migration_hash)
