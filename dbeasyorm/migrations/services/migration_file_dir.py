@@ -3,10 +3,10 @@ import configparser
 
 
 class MigrationFileDir:
-    def __init__(self, config_file='dbeasyorm.ini'):
+    def __init__(self, config_file='dbeasyorm.ini', app_dir=None):
         self.config_file = config_file
         self.config = configparser.ConfigParser()
-        self.app_dir = self.get_app_directory(self.config, self.config_file)
+        self.app_dir = app_dir or self.get_app_directory(self.config, self.config_file)
         self.migrations_dir = self._ensure_migrations_directory(os.path.join(self.app_dir, "migrations"))
 
     def get_app_directory(self, config: configparser.ConfigParser, config_file: str) -> str:

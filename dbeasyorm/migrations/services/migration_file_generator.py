@@ -9,8 +9,8 @@ from .file_templates.init_migration_file_template import render_init_migration_f
 
 
 class MigrationFileGenerator(MigrationFileDir):
-    def __init__(self, config_file='dbeasyorm.ini', db_backend=None):
-        super().__init__(config_file)
+    def __init__(self, config_file='dbeasyorm.ini', db_backend=None, app_dir=None):
+        super().__init__(config_file, app_dir=app_dir)
         self.db_backend = db_backend
         self.migration_repo = MigrationRepository(db_backend=self.db_backend)
         self.migration_repo.ensure_migration_model()
