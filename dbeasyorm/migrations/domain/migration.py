@@ -22,3 +22,7 @@ class Migration(ABC):
     @abstractmethod
     def get_hash(self) -> str:
         pass
+
+    @abstractmethod
+    def get_opposite_migration(self) -> object:
+        pass

@@ -72,13 +72,14 @@ class MigrationDetecter:
         return migrations
 
     def _compare_db_schema_to_models(self, models, db_schemas: dict, migrations: list) -> list:
-        model_table_names = [model.query_creator.get_table_name() for model in models]
+        model_table_names = {model.query_creator.get_table_name(): model for model in models}
 
         for table_name in db_schemas.keys():
-            if self._is_tables_exists_in_db_but_not_in_models(table_name, model_table_names):
+            if self._is_tables_exists_in_db_but_not_in_models(table_name, list(model_table_names.keys())):
                 if table_name != self.migration_repo.get_table_name():
                     migration = DropTableMigration(
-                        table_name=table_name
+                        table_name=table_name,
+                        fields=db_schemas[table_name],
                     )
                     migrations.append(migration)
         return migrations

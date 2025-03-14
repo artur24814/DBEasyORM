@@ -26,3 +26,11 @@ class AddColumnsMigration(Migration):
 
     def get_hash(self) -> str:
         return f"add_columns_to_{self.table_name}_"
+
+    def get_opposite_migration(self) -> Migration:
+        from ..migrations import RemoveColumnsMigration
+        return RemoveColumnsMigration(
+            table_name=self.table_name,
+            fields=self.db_columns,
+            db_columns=self.fields
+        )

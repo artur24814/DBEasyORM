@@ -3,7 +3,7 @@ from dbeasyorm import fields
 
 
 class MigrationModel(Model):
-    name = fields.TextField()
+    name = fields.TextField(unique=True)
     status = fields.IntegerField(default=0)
     applied_at = fields.TextField(null=True)
     hash = fields.TextField(null=True)

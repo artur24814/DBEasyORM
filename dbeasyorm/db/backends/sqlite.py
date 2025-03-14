@@ -1,6 +1,7 @@
 import sqlite3
 from .abstract import DataBaseBackend
-from dbeasyorm.fields import BaseField, ForeignKey
+from dbeasyorm import fields as symple_fields
+from dbeasyorm.fields.utils import get_field_object_by_schema
 from dbeasyorm.db.operators import apply_sql_operator
 
 
@@ -24,6 +25,16 @@ class SQLiteBackend(DataBaseBackend):
             bytes: "BLOB",
             bool: "INTEGER",
             str: "TEXT"
+        }
+
+    def get_field_type_map(self) -> dict:
+        sql_type_map = self.get_sql_types_map()
+        return {
+            sql_type_map[int]: symple_fields.IntegerField,
+            sql_type_map[float]: symple_fields.FloatField,
+            sql_type_map[bytes]: symple_fields.ByteField,
+            sql_type_map[bool]: symple_fields.IntegerField,
+            sql_type_map[str]: symple_fields.TextField
         }
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
@@ -77,12 +88,12 @@ class SQLiteBackend(DataBaseBackend):
         where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql}"
 
-    def generate_create_table_sql(self, table_name: str, fields: BaseField):
+    def generate_create_table_sql(self, table_name: str, fields: symple_fields.BaseField):
         columns = []
         foreign_keys = []
 
         for field in fields:
-            if isinstance(field, ForeignKey):
+            if isinstance(field, symple_fields.ForeignKey):
                 column, foreign_key = field.get_sql_line(self.get_foreign_key_constraint)
                 columns.append(column)
                 foreign_keys.append(foreign_key)
@@ -132,6 +143,13 @@ class SQLiteBackend(DataBaseBackend):
 
             self.cursor.execute(f"PRAGMA table_info({table_name});")
             columns = self.cursor.fetchall()
-            schema[table_name] = {col[1]: col[2] for col in columns}
+            self.cursor.execute(f"PRAGMA foreign_key_list({table_name});")
+            foreign_keys = self.cursor.fetchall()
+            foreign_keys_names = [fk[3] for fk in foreign_keys]
+            columns_dict = {col[1]: get_field_object_by_schema(col, self.get_field_type_map()) for col in columns if col[1] not in foreign_keys_names}
+            fk_dict = {col[3]: get_field_object_by_schema(col, fk=True) for col in foreign_keys}
+            columns_dict.update(fk_dict)
+
+            schema[table_name] = columns_dict
 
         return schema

@@ -12,20 +12,19 @@ class MigrationExecutor:
         self.migration_repo.ensure_migration_model()
         self.sql = ""
 
-    def execute_detected_migration(self, detected_migration: dict) -> None:
+    def execute_detected_migration(self, detected_migration: dict, restore: bool = False) -> None:
         print_line(Fore.BLUE, '-')
         print_info(f"Detected ({len(detected_migration)}) migrations to execute")
         print_line(Fore.BLUE, '-')
-        self._apply_migrations(detected_migration)
+        self._apply_migrations(detected_migration, restore)
         print_success("All database migrations applied")
 
-    def _apply_migrations(self, detected_migration: list):
+    def _apply_migrations(self, detected_migration: list, restore: bool) -> None:
         for migrations_dict in detected_migration:
             for name, migrations in migrations_dict.items():
                 sql = self._append_sql_migration(migrations)
                 migration_hash = self._append_migration_hash(migrations)
-                self._apply_one_migration(sql=sql, name=name, migration_hash=migration_hash)
-                print_success(f"✅ Migration {name} applied!")
+                self._apply_one_migration(sql=sql, name=name, migration_hash=migration_hash, restore=restore)
 
     def _append_sql_migration(self, migrations: list) -> str:
         return ''.join([migration.generate_sql(self.db_backend) for migration in migrations])
@@ -33,6 +32,13 @@ class MigrationExecutor:
     def _append_migration_hash(self, migrations: list) -> str:
         return ''.join([migration.get_hash() for migration in migrations])
 
-    def _apply_one_migration(self, name: str, sql: str, migration_hash: str) -> None:
+    def _apply_one_migration(self, name: str, sql: str, migration_hash: str, restore: bool) -> None:
         self.db_backend.execute(query=sql)
-        self.migration_repo.save_migration(name=name, hash=migration_hash)
+        if not restore:
+            try:
+                self.migration_repo.save_migration(name=name, hash=migration_hash)
+            except Exception:
+                self.migration_repo.update_migration_status(name=name, status=1)
+            print_success(f"✅ Migration {name} applied!")
+        else:
+            print_success(f"✅ Migration {name} rollback!")

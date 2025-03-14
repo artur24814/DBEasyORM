@@ -36,5 +36,28 @@ class MigrationRepository:
             hash=hash
         ).execute()
 
+    def get_migrations(self) -> list:
+        return self.model.query_creator.all().execute()
+
+    def get_migrations_in(self, in_list: list) -> list:
+        return self.model.query_creator.filter(name__in=in_list).execute()
+
+    def get_applied_migrations_obj(self) -> list:
+        return self.model.query_creator.filter(status=1).execute()
+
+    def update_migration_status(self, name: str, status: int) -> MigrationModel:
+        migration = self.model.query_creator.get_one(name=name).execute()
+        migration.status = status
+        migration.save().execute()
+        return migration
+
+    def update_migrations_status(self, status: int = 0, migrations_objs: list = None) -> list:
+        result = []
+        for migration in migrations_objs:
+            migration.status = 0
+            migration.save().execute()
+            result.append(migration)
+        return result
+
     def get_next_name(self) -> str:
         return self.model.get_next_migration_name()

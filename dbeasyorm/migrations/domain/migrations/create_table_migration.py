@@ -13,3 +13,10 @@ class CreateTableMigration(Migration):
 
     def get_hash(self) -> str:
         return f"create_table_{self.table_name}_"
+
+    def get_opposite_migration(self) -> Migration:
+        from ..migrations import DropTableMigration
+        return DropTableMigration(
+            table_name=self.table_name,
+            fields=self.fields
+        )

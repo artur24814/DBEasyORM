@@ -13,7 +13,7 @@ def test_init_migration(testing_db):
     CustomeTestModel = init_custome_test_model()
     MigrationModel.query_creator.backend = CustomeTestModel.query_creator.backend
 
-    # Balnc db
+    # Blanc db
     with pytest.raises(Exception):
         assert len(MigrationModel.query_creator.all().execute()) == 0
 
