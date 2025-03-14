@@ -3,6 +3,7 @@ from faker import Faker
 import random
 
 from tests.models_tests.CustomeTestModel import init_custome_test_model
+from dbeasyorm.migrations import RemoveColumnsMigration
 
 
 fake = Faker()
@@ -12,7 +13,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
     CustomeTestModel = init_custome_test_model()
     CustomeTestModel.migrate().backend.execute(query=CustomeTestModel.query_creator.sql)
 
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
     from dbeasyorm import fields
     from dbeasyorm.models.model import Model
 
@@ -26,23 +27,19 @@ def test_execute_few_columns_to_add_detected(testing_db):
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
-    # Add these fields to your creation fields
-    # NOTE: If we are going to use sqlite, we only really need only the model
-    # because we will create a new one based on this model.
-    # But the interface requires passing all fields to be created for compatibility with other backends
-    detected_migrations = {
-        "create_tables": [],
-        "add_columns": [],
-        "drop_tables": [],
-        "remove_columns": [
-            (
-                CustomeTestModel.query_creator.get_table_name(),
-                "is_admin",
-                CustomeTestModel
-            )
-        ]
-    }
-    migration_exec.execute_detected_migration(detected_migration=detected_migrations)
+    db_schemas = migration_exec.db_backend.get_database_schemas()
+    detected_migration = [{
+        "011":
+            [
+                RemoveColumnsMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                    db_columns=db_schemas[CustomeTestModel.query_creator.get_table_name()],
+                )
+            ]
+        }
+    ]
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # now we can insert model and try to get deleted fileds
     assert CustomeTestModel(

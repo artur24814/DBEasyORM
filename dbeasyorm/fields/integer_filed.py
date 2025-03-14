@@ -3,7 +3,7 @@ from .abstract import BaseField
 
 class IntegerField(BaseField):
     def __init__(self, field_name=None, null=False, primary=False, autoincrement=False, unique=False, min=None, max=None, default=None):
-        super().__init__(int, field_name, null, primary, unique, autoincrement, default=None)
+        super().__init__(int, field_name, null, primary, unique, autoincrement, default)
         self.min = min
         self.max = max
 

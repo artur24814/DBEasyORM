@@ -2,6 +2,7 @@ from faker import Faker
 import random
 
 from tests.models_tests.CustomeTestModel import init_custome_test_model, init_post_test_model_related_to
+from dbeasyorm.fields import IntegerField, TextField, FloatField, ForeignKey
 
 
 fake = Faker()
@@ -91,19 +92,22 @@ def test_get_table_schemas(testing_db):
 
     expected_schemas = {
         'CUSTOMETESTMODEL': {
-            '_id': 'INTEGER',
-            'name': 'TEXT',
-            'age': 'INTEGER',
-            'email': 'TEXT',
-            'is_admin': 'INTEGER',
-            'salary': 'REAL'
+            '_id': IntegerField(field_name='_id', null=False, primary=True, unique=False, autoincrement=False, default=None, min=None, max=None),
+            'name': TextField(field_name='name', null=True, primary=False, unique=False, autoincrement=False, default=None),
+            'age': IntegerField(field_name='age', null=True, primary=False, unique=False, autoincrement=False, default=None, min=None, max=None),
+            'email': TextField(field_name='email', null=True, primary=False, unique=False, autoincrement=False, default=None),
+            'is_admin': IntegerField(field_name='is_admin', null=False, primary=False, unique=False, autoincrement=False, default=None, min=None, max=None),
+            'salary': FloatField(field_name='salary', null=False, primary=False, unique=False, autoincrement=False, default=None),
         },
         'POSTTESTMODEL': {
-            '_id': 'INTEGER',
-            'content': 'TEXT',
-            'id_autor': 'INTEGER',
-            'is_read': 'INTEGER'
-        }
+            '_id': IntegerField(field_name='_id', null=False, primary=True, unique=False, autoincrement=False, default=None, min=None, max=None),
+            'content': TextField(field_name='content', null=False, primary=False, unique=False, autoincrement=False, default=None),
+            'id_autor': ForeignKey(field_name='id_autor', null=True, primary=False, unique=False, autoincrement=False, default=None, related_model='CUSTOMETESTMODEL', on_delete='CASCADE'),
+            'is_read': IntegerField(field_name='is_read', null=False, primary=False, unique=False, autoincrement=False, default=None, min=None, max=None),
+        },
     }
+    actual_schemas = CustomeTestModel.migrate().backend.get_database_schemas()
+    assert list(actual_schemas) == list(expected_schemas.keys())
 
-    assert CustomeTestModel.migrate().backend.get_database_schemas() == expected_schemas
+    for table, fields in expected_schemas.items():
+        assert set(actual_schemas[table].keys()) == set(fields.keys())

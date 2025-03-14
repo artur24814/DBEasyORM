@@ -1,6 +1,7 @@
 import sqlite3
 from .abstract import DataBaseBackend
-from dbeasyorm.fields import BaseField, ForeignKey
+from dbeasyorm import fields as simple_fields
+from dbeasyorm.fields.utils import get_field_object_by_db_schema
 from dbeasyorm.db.operators import apply_sql_operator
 
 
@@ -14,17 +15,20 @@ class SQLiteBackend(DataBaseBackend):
     def get_placeholder(self) -> str:
         return "?"
 
-    def get_sql_type(self, type) -> str:
-        return self.type_map.get(type)
-
     def get_sql_types_map(self) -> dict:
         return {
-            int: "INTEGER",
-            float: "REAL",
-            bytes: "BLOB",
-            bool: "INTEGER",
-            str: "TEXT"
+            int: ("INTEGER", simple_fields.IntegerField),
+            float: ("REAL", simple_fields.FloatField),
+            bytes: ("BLOB", simple_fields.ByteField),
+            bool: ("INTEGER", simple_fields.IntegerField),
+            str: ("TEXT", simple_fields.TextField)
         }
+
+    def get_sql_type(self, python_type) -> str:
+        return self.type_map.get(python_type, (None, None))[0]
+
+    def get_field_type_map(self) -> dict:
+        return {sql_type: field_class for _, (sql_type, field_class) in self.type_map.items() if sql_type}
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
         return (
@@ -77,12 +81,12 @@ class SQLiteBackend(DataBaseBackend):
         where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql}"
 
-    def generate_create_table_sql(self, table_name: str, fields: BaseField):
+    def generate_create_table_sql(self, table_name: str, fields: simple_fields.BaseField):
         columns = []
         foreign_keys = []
 
         for field in fields:
-            if isinstance(field, ForeignKey):
+            if isinstance(field, simple_fields.ForeignKey):
                 column, foreign_key = field.get_sql_line(self.get_foreign_key_constraint)
                 columns.append(column)
                 foreign_keys.append(foreign_key)
@@ -93,25 +97,25 @@ class SQLiteBackend(DataBaseBackend):
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
 
-    def generate_alter_field_sql(self, model: BaseField, db_columns: dict, *args, **kwargs) -> str:
-        table_name = model.query_creator.get_table_name()
+    def generate_alter_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
         sql_result = ''
-        db_columns = ", ".join(db_columns.keys())
+        db_columns_names = ", ".join(db_columns.keys())
+        fields_names = ", ".join([field.field_name for field in fields])
+        fields_names_to_copy = ", ".join([db_columns_names + (", NULL" * (len(fields) - len(db_columns)))])
 
         # sql_create_new_table_query
-        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", list(model._fields.values()))
-        sql_result += f"""INSERT INTO {table_name}_NEW ({db_columns}) SELECT {db_columns} FROM {table_name};"""
+        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", fields)
+        sql_result += f"""\nINSERT INTO {table_name}_NEW ({fields_names})\nSELECT {fields_names_to_copy} FROM {table_name};\n"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
-        sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
+        sql_result += f"\nALTER TABLE {table_name}_NEW RENAME TO {table_name};"
         return sql_result
 
-    def generate_drop_field_sql(self, model: BaseField, *args, **kwargs) -> str:
-        table_name = model.query_creator.get_table_name()
+    def generate_drop_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
         sql_result = ''
-        columns = ", ".join(model._fields.keys())
+        columns = ", ".join([field.field_name for field in fields])
 
         # sql_create_new_table_query
-        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", list(model._fields.values()))
+        sql_result += self.generate_create_table_sql(f"{table_name}_NEW", fields)
         sql_result += f"""INSERT INTO {table_name}_NEW ({columns}) SELECT {columns} FROM {table_name};"""
         sql_result += self.generate_drop_table_sql(table_name=table_name)
         sql_result += f"ALTER TABLE {table_name}_NEW RENAME TO {table_name};"
@@ -124,14 +128,26 @@ class SQLiteBackend(DataBaseBackend):
         schema = {}
 
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = self.cursor.fetchall()
-        for table in tables:
-            table_name = table[0]
-            if table_name == 'sqlite_sequence':
-                continue
+        tables = [table[0] for table in self.cursor.fetchall() if table[0] != 'sqlite_sequence']
 
+        for table_name in tables:
             self.cursor.execute(f"PRAGMA table_info({table_name});")
             columns = self.cursor.fetchall()
-            schema[table_name] = {col[1]: col[2] for col in columns}
+
+            self.cursor.execute(f"PRAGMA foreign_key_list({table_name});")
+            foreign_keys = self.cursor.fetchall()
+            foreign_keys_names = {fk[3] for fk in foreign_keys}
+
+            columns_dict = {
+                col[1]: get_field_object_by_db_schema(col, self.get_field_type_map())
+                for col in columns if col[1] not in foreign_keys_names
+            }
+            fk_dict = {
+                col[3]: get_field_object_by_db_schema(col, is_foreign_key=True)
+                for col in foreign_keys
+            }
+            columns_dict.update(fk_dict)
+
+            schema[table_name] = columns_dict
 
         return schema

@@ -96,15 +96,20 @@ class PostgreSQLBackend(DataBaseBackend):
         table_body = ", \n".join(columns + foreign_keys)
         return f"""CREATE TABLE IF NOT EXISTS {table_name} ({table_body});"""
 
-    def generate_alter_field_sql(self, table_name: str, field: BaseField, *args, **kwargs) -> str:
-        if isinstance(field, ForeignKey):
-            field_sql = field.get_sql_line(self.get_foreign_key_constraint)
-        else:
-            field_sql = field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
+    def generate_alter_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
+        for field in fields:
+            if field.field_name not in db_columns:
+                if isinstance(field, ForeignKey):
+                    field_sql = field.get_sql_line(self.get_foreign_key_constraint)
+                else:
+                    field_sql = field.get_sql_line(sql_type=self.get_sql_type(field.python_type))
         return f"ALTER TABLE {table_name} ADD {field_sql};"
 
-    def generate_drop_field_sql(self, table_name: str, field: BaseField, *args, **kwargs) -> str:
-        return f"ALTER TABLE {table_name} DROP COLUMN {field};"
+    def generate_drop_field_sql(self, table_name: str, fields: list, db_columns: dict, *args, **kwargs) -> str:
+        model_fields_names = [field.field_name for field in fields]
+        for db_field_name in list(db_columns.keys()):
+            if db_field_name not in model_fields_names:
+                return f"ALTER TABLE {table_name} DROP COLUMN {db_field_name};"
 
     def generate_drop_table_sql(self, table_name: str) -> str:
         return f"DROP TABLE {table_name}"

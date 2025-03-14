@@ -3,6 +3,7 @@ from faker import Faker
 import random
 
 from tests.models_tests.CustomeTestModel import init_custome_test_model
+from dbeasyorm.migrations import AddColumnsMigration, CreateTableMigration
 
 
 fake = Faker()
@@ -32,7 +33,7 @@ def test_execute_few_columns_to_add_detected(testing_db):
     with pytest.raises(AttributeError):
         assert created_model.bio == FAKE_BIO
 
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
     from dbeasyorm import fields
     from dbeasyorm.models.model import Model
 
@@ -48,31 +49,21 @@ def test_execute_few_columns_to_add_detected(testing_db):
 
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
-    # Add these fields to your creation fields
-    # NOTE: If we are going to use sqlite, we only really need the model
-    # because we will create a new one based on this model.
-    # But the interface requires passing all fields to be created for compatibility with other backends
     db_schemas = migration_exec.db_backend.get_database_schemas()
-    detected_migrations = {
-        "create_tables": [],
-        "add_columns": [
-            (
-                CustomeTestModel.query_creator.get_table_name(),
-                fields.TextField(field_name="bio", null=True),
-                CustomeTestModel,
-                db_schemas[CustomeTestModel.query_creator.get_table_name()]
-            ),
-            (
-                CustomeTestModel.query_creator.get_table_name(),
-                fields.IntegerField(field_name="professional_experience", null=True),
-                CustomeTestModel,
-                db_schemas[CustomeTestModel.query_creator.get_table_name()]
-            )],
-        "drop_tables": [],
-        "remove_columns": []
-    }
+    detected_migration = [
+        {
+            "011":
+            [
+                AddColumnsMigration(
+                    table_name=CustomeTestModel.query_creator.get_table_name(),
+                    fields=CustomeTestModel._fields,
+                    db_columns=db_schemas[CustomeTestModel.query_creator.get_table_name()],
+                )
+            ]
+        }
+    ]
 
-    migration_exec.execute_detected_migration(detected_migration=detected_migrations)
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # now we can insert model and get this fileds
     assert CustomeTestModel(
@@ -95,10 +86,10 @@ def test_execute_few_columns_to_add_detected(testing_db):
 def test_execute_few_columns_to_add_with_foreigth_key_detected(testing_db):
     from dbeasyorm import fields
     from dbeasyorm.models.model import Model
-    from dbeasyorm.migrations import MigrationExecutor
+    from dbeasyorm.migrations.services.migration_executor import MigrationExecutor
 
     CustomeTestModel = init_custome_test_model()
-    CustomeTestModel.query_creator.backend.connect()
+    CustomeTestModel.migrate().backend.execute(query=CustomeTestModel.query_creator.sql)
     migration_exec = MigrationExecutor(db_backend=CustomeTestModel.query_creator.backend)
 
     # 1. create Profile Model
@@ -106,13 +97,18 @@ def test_execute_few_columns_to_add_with_foreigth_key_detected(testing_db):
         bio = fields.TextField(null=True)
         professional_experience = fields.IntegerField(null=True)
 
-    detected_migrations = {
-        "create_tables": [Profile],
-        "add_columns": [],
-        "drop_tables": [],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=detected_migrations)
+    db_schemas = migration_exec.db_backend.get_database_schemas()
+    detected_migration = [{
+        "011":
+            [
+                CreateTableMigration(
+                    table_name=Profile.query_creator.get_table_name(),
+                    fields=Profile._fields,
+                )
+            ]
+        }
+    ]
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     # 2. Add new Foreign key to CustomeTestModel
     class Profile(Model):
@@ -122,20 +118,18 @@ def test_execute_few_columns_to_add_with_foreigth_key_detected(testing_db):
 
     # 3. Add CustomeTestModel to create_tables, and fied with Foreign key
     db_schemas = migration_exec.db_backend.get_database_schemas()
-    detected_migrations = {
-        "create_tables": [CustomeTestModel],
-        "add_columns": [
-            (
-                Profile.query_creator.get_table_name(),
-                fields.ForeignKey(field_name='autor', related_model=CustomeTestModel),
-                Profile,
-                db_schemas[Profile.query_creator.get_table_name()]
-            )
-        ],
-        "drop_tables": [],
-        "remove_columns": []
-    }
-    migration_exec.execute_detected_migration(detected_migration=detected_migrations)
+    detected_migration = [{
+        "001":
+            [
+                AddColumnsMigration(
+                    table_name=Profile.query_creator.get_table_name(),
+                    fields=Profile._fields,
+                    db_columns=db_schemas[Profile.query_creator.get_table_name()],
+                )
+            ]
+        }
+    ]
+    migration_exec.execute_detected_migration(detected_migration=detected_migration)
 
     assert CustomeTestModel(
         name=fake.name(),

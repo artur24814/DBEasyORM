@@ -1,11 +1,12 @@
-from .migration import Migration
-from .migration_detecter import MigrationDetecter
-from .migration_handler import MigrationHandler
-from .migration_executor import MigrationExecutor
+from .application.migration_file_manager import MigrationFileManager
+from .application.migration_processor import MigrationProcessor
+from .domain.migrations import CreateTableMigration, AddColumnsMigration, DropTableMigration, RemoveColumnsMigration
 
 __all__ = [
-    'Migration',
-    'MigrationDetecter',
-    'MigrationHandler',
-    'MigrationExecutor',
+    'MigrationProcessor',
+    'MigrationFileManager',
+    'CreateTableMigration',
+    'AddColumnsMigration',
+    'DropTableMigration',
+    'RemoveColumnsMigration'
 ]
