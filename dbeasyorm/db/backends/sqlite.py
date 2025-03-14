@@ -1,7 +1,7 @@
 import sqlite3
 from .abstract import DataBaseBackend
-from dbeasyorm import fields as symple_fields
-from dbeasyorm.fields.utils import get_field_object_by_schema
+from dbeasyorm import fields as simple_fields
+from dbeasyorm.fields.utils import get_field_object_by_db_schema
 from dbeasyorm.db.operators import apply_sql_operator
 
 
@@ -15,27 +15,20 @@ class SQLiteBackend(DataBaseBackend):
     def get_placeholder(self) -> str:
         return "?"
 
-    def get_sql_type(self, type) -> str:
-        return self.type_map.get(type)
-
     def get_sql_types_map(self) -> dict:
         return {
-            int: "INTEGER",
-            float: "REAL",
-            bytes: "BLOB",
-            bool: "INTEGER",
-            str: "TEXT"
+            int: ("INTEGER", simple_fields.IntegerField),
+            float: ("REAL", simple_fields.FloatField),
+            bytes: ("BLOB", simple_fields.ByteField),
+            bool: ("INTEGER", simple_fields.IntegerField),
+            str: ("TEXT", simple_fields.TextField)
         }
 
+    def get_sql_type(self, python_type) -> str:
+        return self.type_map.get(python_type, (None, None))[0]
+
     def get_field_type_map(self) -> dict:
-        sql_type_map = self.get_sql_types_map()
-        return {
-            sql_type_map[int]: symple_fields.IntegerField,
-            sql_type_map[float]: symple_fields.FloatField,
-            sql_type_map[bytes]: symple_fields.ByteField,
-            sql_type_map[bool]: symple_fields.IntegerField,
-            sql_type_map[str]: symple_fields.TextField
-        }
+        return {sql_type: field_class for _, (sql_type, field_class) in self.type_map.items() if sql_type}
 
     def get_foreign_key_constraint(self, field_name: str, related_table: str, on_delete: str) -> str:
         return (
@@ -88,12 +81,12 @@ class SQLiteBackend(DataBaseBackend):
         where_sql = " AND ".join([f"{col}={self.get_placeholder()}" for col in where_clause]) if where_clause else ""
         return f"DELETE FROM {table_name} WHERE {where_sql}"
 
-    def generate_create_table_sql(self, table_name: str, fields: symple_fields.BaseField):
+    def generate_create_table_sql(self, table_name: str, fields: simple_fields.BaseField):
         columns = []
         foreign_keys = []
 
         for field in fields:
-            if isinstance(field, symple_fields.ForeignKey):
+            if isinstance(field, simple_fields.ForeignKey):
                 column, foreign_key = field.get_sql_line(self.get_foreign_key_constraint)
                 columns.append(column)
                 foreign_keys.append(foreign_key)
@@ -135,19 +128,24 @@ class SQLiteBackend(DataBaseBackend):
         schema = {}
 
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = self.cursor.fetchall()
-        for table in tables:
-            table_name = table[0]
-            if table_name == 'sqlite_sequence':
-                continue
+        tables = [table[0] for table in self.cursor.fetchall() if table[0] != 'sqlite_sequence']
 
+        for table_name in tables:
             self.cursor.execute(f"PRAGMA table_info({table_name});")
             columns = self.cursor.fetchall()
+
             self.cursor.execute(f"PRAGMA foreign_key_list({table_name});")
             foreign_keys = self.cursor.fetchall()
-            foreign_keys_names = [fk[3] for fk in foreign_keys]
-            columns_dict = {col[1]: get_field_object_by_schema(col, self.get_field_type_map()) for col in columns if col[1] not in foreign_keys_names}
-            fk_dict = {col[3]: get_field_object_by_schema(col, fk=True) for col in foreign_keys}
+            foreign_keys_names = {fk[3] for fk in foreign_keys}
+
+            columns_dict = {
+                col[1]: get_field_object_by_db_schema(col, self.get_field_type_map())
+                for col in columns if col[1] not in foreign_keys_names
+            }
+            fk_dict = {
+                col[3]: get_field_object_by_db_schema(col, is_foreign_key=True)
+                for col in foreign_keys
+            }
             columns_dict.update(fk_dict)
 
             schema[table_name] = columns_dict

@@ -10,7 +10,7 @@ class MigrationFileReader(MigrationFileDir):
         self.db_backend = db_backend
         self.migration_repo = MigrationRepository(db_backend=self.db_backend)
 
-    def read_migrations(self, id_migration: list = None) -> dict:
+    def read_migrations(self, id_migration: str = None) -> dict:
         migration_files = sorted(os.listdir(self.migrations_dir))
         applied_migrations_names = self.migration_repo.get_applied_migrations()
 

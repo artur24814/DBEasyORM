@@ -15,18 +15,20 @@ class MigrationRepository:
         return self.model.query_creator.get_table_name()
 
     def ensure_migration_model(self) -> None:
-        try:
-            self.model.query_creator.all().execute()
-        except Exception:
+        if not self.migration_table_exists():
             self.init()
             print("Migrations table not found in database. New one created")
+
+    def migration_table_exists(self) -> bool:
+        try:
+            self.model.query_creator.all().execute()
+            return True
+        except Exception:
+            return False
 
     def init(self) -> None:
         self.model.init_migration_model()
         self.save_migration(name="000", hash=MigrationModel.get_hash())
-
-    def get_applied_migrations(self) -> list:
-        return self.model.get_names_migrations_applied()
 
     def save_migration(self, name: str, hash="") -> None:
         return self.model.query_creator.create(
@@ -36,14 +38,23 @@ class MigrationRepository:
             hash=hash
         ).execute()
 
+    def _fetch_migrations(self, filter_by: dict = None) -> list:
+        query = self.model.query_creator
+        if filter_by:
+            query = query.filter(**filter_by)
+        return query.execute()
+
+    def get_applied_migrations(self) -> list:
+        return self.model.get_names_migrations_applied()
+
     def get_migrations(self) -> list:
-        return self.model.query_creator.all().execute()
+        return self._fetch_migrations()
 
     def get_migrations_in(self, in_list: list) -> list:
-        return self.model.query_creator.filter(name__in=in_list).execute()
+        return self._fetch_migrations({"name__in": in_list})
 
     def get_applied_migrations_obj(self) -> list:
-        return self.model.query_creator.filter(status=1).execute()
+        return self._fetch_migrations({"status": 1})
 
     def update_migration_status(self, name: str, status: int) -> MigrationModel:
         migration = self.model.query_creator.get_one(name=name).execute()
@@ -54,7 +65,7 @@ class MigrationRepository:
     def update_migrations_status(self, status: int = 0, migrations_objs: list = None) -> list:
         result = []
         for migration in migrations_objs:
-            migration.status = 0
+            migration.status = status
             migration.save().execute()
             result.append(migration)
         return result

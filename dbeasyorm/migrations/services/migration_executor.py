@@ -2,7 +2,8 @@ from colorama import Fore
 from dbeasyorm.db.backends import DataBaseBackend
 from dbeasyorm.migrations.infrastructure.migration_repository import MigrationRepository
 
-from ..application.cli.messages import print_success, print_info, print_line
+from ..application.cli.messages import print_success, print_info
+from ..application.cli.decorators import adding_separation_characters
 
 
 class MigrationExecutor:
@@ -12,12 +13,10 @@ class MigrationExecutor:
         self.migration_repo.ensure_migration_model()
         self.sql = ""
 
+    @adding_separation_characters(Fore.BLUE, character='-', print_message_fnc=lambda: print_success("All database migrations applied"))
     def execute_detected_migration(self, detected_migration: dict, restore: bool = False) -> None:
-        print_line(Fore.BLUE, '-')
         print_info(f"Detected ({len(detected_migration)}) migrations to execute")
-        print_line(Fore.BLUE, '-')
         self._apply_migrations(detected_migration, restore)
-        print_success("All database migrations applied")
 
     def _apply_migrations(self, detected_migration: list, restore: bool) -> None:
         for migrations_dict in detected_migration:
