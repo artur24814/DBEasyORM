@@ -104,7 +104,7 @@ pip install dbeasyorm[dev]
 3. Migrations
 
     Once you have defined your models, you need to perform migrations.
-    #### Generate Migration Files:
+    ### Generate Migration Files:
     Run the following command to create migration files:
     ```bash
     $ dbeasyorm generate-migration
@@ -264,7 +264,22 @@ pip install dbeasyorm[dev]
         -d, --direct          Apply migrations directly to the database, bypassing migration files
     ```
 
-    #### Restoring Database to a Specific Migration:
+    ### Applying Migrations Directly
+    If you want to apply migrations without generating migration files, use the `--direct` flag:
+
+    ```bash
+    > dbeasyorm apply-migrations --direct
+    ```
+    __Important Notes__:
+    * This command __directly modifies__ the database.
+
+    * It __only creates records in the migrations table__ but __does not generate migration files__.
+
+    * __Rollback and other migration management options will not be available__ because no migration files are created.
+
+    __⚠ Warning__: Using `--direct` means you __cannot revert the applied migrations later__, so use this option only when necessary and with caution.
+
+    ### Restoring Database to a Specific Migration:
     To roll back to a specific migration, use:
 
     ```
@@ -291,7 +306,7 @@ pip install dbeasyorm[dev]
 
     Use with caution, as this may cause data __loss__.
 
-    #### Customizing Migrations:
+    ### Customizing Migrations:
 
     Before applying a migration, you can modify the migration file to include custom logic.
 
