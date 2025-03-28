@@ -103,22 +103,247 @@ pip install dbeasyorm[dev]
 
 3. Migrations
 
-    Once you have defined your models, perform migrations:
+    Once you have defined your models, you need to perform migrations.
+    ### Generate Migration Files:
+    Run the following command to create migration files:
     ```bash
-    $ dbeasyorm update-database
+    $ dbeasyorm generate-migration
     ```
 
-    all arguments:
+    Available Arguments:
 
     ```bash
-    $ dbeasyorm update-database --help              
-    usage: cli.py update-database [-h] [-l LOOCKUP_FOLDER] [-i ID_MIGRATIONS] [-r] [-c CONFIG]
+    $ dbeasyorm generate-migration --help              
+    usage:  generate-migration [-h] [-l LOOKUP_FOLDER] [-c CONFIG]
 
     options:
-        -l LOOCKUP_FOLDER, --loockup-folder Path to the lookup folder
-        -i ID_MIGRATIONS, --id-migrations ID of specific migrations
-        -r, --restore   Restore database to the previous state
-        -c CONFIG, --config  Path to the config.ini file
+        -h, --help   Show this help message and exit
+        -l LOOKUP_FOLDER, --lookup-folder LOOKUP_FOLDER
+                    Path to the lookup folder
+        -c CONFIG, --config CONFIG
+                    Path to the config.ini file
+
+    ```
+
+    This command will:
+
+    * Create a migrations folder
+    * Generate migration tables in the database (if they do not already exist)
+    * Store the files in the folder specified in the `[app]` section of the `dbeasyorm.in`i file
+    
+    Example structure after running the command:
+
+    ```
+    .
+    └── app/
+        └── migrations/
+            ├── __init__.py
+            └── 000_init_migration.py
+    ```
+    Next, the system will analyze differences between the current database schema and your models, generating a new migration file.
+
+    Example output:
+
+    ```
+    $ dbeasyorm generate-migration
+    Migrations table not found in database. New one created
+    =================================================================================
+    [SUCCESS] ✅ New migration created: app\migrations\001_create_table_USERMODEL_.py
+    =================================================================================
+    ```
+
+    After this, the project structure will look like:
+    ```
+    .
+    └── app/
+        └── migrations/
+            ├── __init__.py
+            ├── 000_init_migration.py
+            └── 001_create_table_USERMODEL_.py
+    ```
+    Example of a Generated Migration File:
+    ```python
+    """
+    Migration: create_table_USERMODEL_
+    Created: 2025-03-14 17:38:07.923634
+    """
+
+    from dbeasyorm.migrations import *
+    from dbeasyorm.fields import *
+
+
+    def get_migrations():
+        return [
+            CreateTableMigration(
+                table_name="USERMODEL",
+                fields={
+                    "_id": IntegerField(
+                        field_name="_id",
+                        null=False,
+                        primary=True,
+                        unique=False,
+                        autoincrement=True,
+                        default=None,
+                        min=None,
+                        max=None,
+                    ),
+                    "name": TextField(
+                        field_name="name",
+                        null=False,
+                        primary=False,
+                        unique=False,
+                        autoincrement=False,
+                        default=None,
+                    ),
+                    "second_name": TextField(
+                        field_name="second_name",
+                        null=False,
+                        primary=False,
+                        unique=False,
+                        autoincrement=False,
+                        default=None,
+                    ),
+                    "email": TextField(
+                        field_name="email",
+                        null=False,
+                        primary=False,
+                        unique=True,
+                        autoincrement=False,
+                        default=None,
+                    ),
+                    "age": IntegerField(
+                        field_name="age",
+                        null=False,
+                        primary=False,
+                        unique=False,
+                        autoincrement=False,
+                        default=None,
+                        min=None,
+                        max=None,
+                    ),
+                    "salary": FloatField(
+                        field_name="salary",
+                        null=True,
+                        primary=False,
+                        unique=False,
+                        autoincrement=False,
+                        default=None,
+                    ),
+                },
+            ),
+        ]
+    ```
+
+    ### Applying Migrations:
+    Run the following command to apply all pending migrations:
+    ```bash
+    $ dbeasyorm apply-migrations
+    =========================================
+    -----------------------------------------
+    [INFO] Detected (1) migrations to execute
+    [SUCCESS] ✅ Migration 001 applied!
+    [SUCCESS] All database migrations applied
+    -----------------------------------------
+    [SUCCESS] Everything is up to date
+    =========================================
+    ```
+    Available Arguments:
+    ```bash
+    $ dbeasyorm apply-migrations --help              
+    usage: apply-migrations [-h] [-l LOOKUP_FOLDER] [-i ID_MIGRATION] [-r] [-c CONFIG] [-d]
+
+    options:
+        -h, --help            Show this help message and exit
+        -l LOOKUP_FOLDER, --lookup-folder LOOKUP_FOLDER
+                            Path to the lookup folder
+        -i ID_MIGRATION, --id-migration ID_MIGRATION
+                            ID of a specific migration to apply
+        -r, --restore         Restore database to a previous migration
+        -c CONFIG, --config CONFIG
+                            Path to the config.ini file
+        -d, --direct          Apply migrations directly to the database, bypassing migration files
+    ```
+
+    ### Applying Migrations Directly
+    If you want to apply migrations without generating migration files, use the `--direct` flag:
+
+    ```bash
+    > dbeasyorm apply-migrations --direct
+    ```
+    __Important Notes__:
+    * This command __directly modifies__ the database.
+
+    * It __only creates records in the migrations table__ but __does not generate migration files__.
+
+    * __Rollback and other migration management options will not be available__ because no migration files are created.
+
+    __⚠ Warning__: Using `--direct` means you __cannot revert the applied migrations later__, so use this option only when necessary and with caution.
+
+    ### Restoring Database to a Specific Migration:
+    To roll back to a specific migration, use:
+
+    ```
+    $ dbeasyorm apply-migrations --restore -i 001
+    ===================================================================
+    Are you sure you want to restore the database to the migration 001?
+    If so, enter 'Y'.
+    Warning, this may result in data loss!
+    > Y
+    -------------------------------------------------------------------
+    [INFO] Detected (2) migrations to execute
+    [SUCCESS] ✅ Migration 003 rollback!
+    [SUCCESS] ✅ Migration 002 rollback!
+    [SUCCESS] All database migrations applied
+    -------------------------------------------------------------------
+    [SUCCESS] Everything is up to date
+    ===================================================================
+    ```
+    ⚠ Warning: This command reverses all applied migrations sequentially, meaning:
+
+    * Created tables will be deleted
+    * Added columns will be removed
+    * Other changes will be undone
+
+    Use with caution, as this may cause data __loss__.
+
+    ### Customizing Migrations:
+
+    Before applying a migration, you can modify the migration file to include custom logic.
+
+    For example:
+    ```python
+    """
+    Migration: create_table_USERMODEL_
+    Created: 2025-03-14 17:38:07.923634
+    """
+
+    from dbeasyorm.migrations import *
+    from dbeasyorm.fields import *
+
+    def get_default_name():
+        return "Default Name"
+
+    def get_migrations():
+        return [
+            CreateTableMigration(
+                table_name="USERMODEL",
+                fields={
+                    "_id": IntegerField(
+                        field_name="_id",
+                        null=False,
+                        primary=True,
+                        autoincrement=True,
+                    ),
+                    "name": TextField(
+                        field_name="name",
+                        null=False,
+                        default=get_default_name(),
+                    ),
+                    ...
+                }
+            )
+        ]
+
     ```
 
 4. Perform CRUD Operations
